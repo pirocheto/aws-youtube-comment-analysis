@@ -29,8 +29,8 @@ jobs:
         run: sam build --use-container
       # Prevent prompts and failure when the stack is unchanged
       - name: Deploy SAM Application
-        run: >-
-          sam deploy
-            --stack-name youtube-comment-sentiment-analysis
-            --no-confirm-changeset 
+        run: |
+          sam deploy \
+            --stack-name youtube-comment-sentiment-analysis \
+            --no-confirm-changeset \
             --no-fail-on-empty-changeset
