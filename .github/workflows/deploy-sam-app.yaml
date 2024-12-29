@@ -20,11 +20,13 @@ jobs:
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
+        env:
+          SAM_CLI_TELEMETRY: 0
         with:
           use-installer: true
       # Build inside Docker containers
       - name: Build SAM Application
-        run: sam build --use-container
+        run: sam build --use-container --debug
       # Prevent prompts and failure when the stack is unchanged
       - name: Deploy SAM Application
         run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
