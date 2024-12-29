@@ -11,7 +11,7 @@ Resources:
       CodeUri: src
       Description: Fetches comments from youtube video and performs sentiment analysis
       Architectures:
-        - arm64
+        - x86_64
       Runtime: python3.12
       Timeout: 30
       Tracing: Active
