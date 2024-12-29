@@ -5,3 +5,6 @@ create-requirements:
 
 build:
 	sam build --config-env prod
+
+deploy:
+	sam deploy --config-env prod
