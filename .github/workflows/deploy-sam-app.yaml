@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Configure AWS Credentials for China region audience
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          audience: sts.amazonaws.com.cn
+          audience: sts.amazonaws.com
           aws-region: eu-central-1
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
       - name: Setup SAM
