@@ -16,6 +16,7 @@ Resources:
   YoutubeCommentSentimentAnalysisFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: youtube-comment-sentiment-analysis
       Handler: lambda_handler
       CodeUri: src
       Description: Fetches comments from youtube video and performs sentiment analysis
