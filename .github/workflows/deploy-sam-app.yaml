@@ -7,16 +7,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
+      - name: Configure AWS Credentials for China region audience
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com.cn
+          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::639269844451:role/github-actions
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
       # Build inside Docker containers
-      - run: sam build --use-container
+      - name: Build SAM Application
+        run: sam build --use-container
       # Prevent prompts and failure when the stack is unchanged
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+      - name: Deploy SAM Application
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
