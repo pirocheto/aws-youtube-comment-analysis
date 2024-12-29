@@ -26,11 +26,7 @@ jobs:
           use-installer: true
       # Build inside Docker containers
       - name: Build SAM Application
-        run: sam build --use-container
+        run: sam build --config-env prod
       # Prevent prompts and failure when the stack is unchanged
       - name: Deploy SAM Application
-        run: |
-          sam deploy \
-            --stack-name youtube-comment-sentiment-analysis \
-            --no-confirm-changeset \
-            --no-fail-on-empty-changeset
+        run: sam deploy --config-env prod
