@@ -9,6 +9,7 @@ prod:
   deploy:
     parameters:
       template_file: template.yaml
+      disable_rollback: true
       parameter_overrides: "Environment=prod"
       fail_on_empty_changeset: false
       s3_bucket: aws-sam-cli-youtube-comment-sentiment-analysis
