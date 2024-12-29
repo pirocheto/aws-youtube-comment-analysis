@@ -1,0 +1,37 @@
+[project]
+name = "aws-youtube-sentiment-analysis"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["requests>=2.32.3"]
+
+[dependency-groups]
+dev = [
+    "aws-lambda-powertools[parser,tracer]>=3.4.0",
+    "boto3>=1.35.87",
+    "mypy>=1.14.0",
+]
+
+
+[tool.mypy]
+disallow_untyped_calls = true
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "F",    # Pyflakes
+    "I",    # isort
+    "E",    # pycodestyle
+    "S",    # flake8-bandit
+    "N",    # pep8-naming
+    "PERF",
+]
+
+ignore = [
+    "E501", # pycodestyle - Line too long
+    "S603", # flake8-bandit - check for execution of untrusted input
+    "S101", # flake8-bandit - Use of assert detected
+]

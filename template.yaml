@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Youtube comment sentiment analysis service
+
+Resources:
+  YoutubeCommentSentimentAnalysisFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda_handler
+      CodeUri: src
+      Description: Fetches comments from youtube video and performs sentiment analysis
+      Architectures:
+        - arm64
+      Runtime: python3.12
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: YoutubeCommentSentimentAnalysis
+          POWERTOOLS_METRICS_NAMESPACE: YoutubeCommentSentimentAnalysis
+          LOG_LEVEL: INFO
+      Tags:
+        service: YoutubeCommentSentimentAnalysis
+        environment: dev
+
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name: !Ref AWS::StackName
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName: !Ref ApplicationResourceGroup
+      AutoConfigurationEnabled: true
+
+Outputs:
+  YoutubeCommentSentimentAnalysisFunction:
+    Description: "Youtube Comment Sentiment Analysis Lambda Function ARN"
+    Value: !GetAtt YoutubeCommentSentimentAnalysisFunction.Arn
+
