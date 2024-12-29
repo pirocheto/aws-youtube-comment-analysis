@@ -3,11 +3,9 @@ prod:
   global:
     parameters:
       stack_name: youtube-comment-sentiment-analysis
-
   build:
     parameters:
       use_container: true
-
   deploy:
     parameters:
       template_file: template.yaml
