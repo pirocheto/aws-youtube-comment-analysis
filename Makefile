@@ -11,7 +11,6 @@ build:
 deploy:
 	sam deploy --config-env prod
 
-
 .PHONY: validate-template
 validate:
 	sam validate --lint --config-env prod
