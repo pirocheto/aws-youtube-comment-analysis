@@ -4,7 +4,7 @@ import pytest
 from aws_lambda_powertools import Metrics
 from aws_lambda_powertools.metrics.provider import cold_start
 
-from src.lambda_handler import lambda_handler
+from src.handler import lambda_handler
 
 
 @pytest.fixture(scope="function", autouse=True)
