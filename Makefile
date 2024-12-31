@@ -12,7 +12,7 @@ deploy:
 	sam deploy --config-env prod
 
 
-.PHONY: validate
+.PHONY: validate-template
 validate:
 	sam validate --lint --config-env prod
 
