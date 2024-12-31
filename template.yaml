@@ -30,6 +30,7 @@ Resources:
           POWERTOOLS_SERVICE_NAME: YoutubeCommentSentimentAnalysis
           POWERTOOLS_METRICS_NAMESPACE: YoutubeCommentSentimentAnalysis
           LOG_LEVEL: INFO
+          BUCKET_NAME: !Ref YoutubeCommentSentimentAnalysisBucket
       Policies: 
         - S3WritePolicy:
             BucketName: !Ref YoutubeCommentSentimentAnalysisBucket
