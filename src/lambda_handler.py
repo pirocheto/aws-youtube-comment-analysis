@@ -5,28 +5,17 @@ import boto3
 import requests
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
-from aws_lambda_powertools.utilities.idempotency import (
-    DynamoDBPersistenceLayer,
-    IdempotencyConfig,
-)
 from aws_lambda_powertools.utilities.parser import event_parser
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from pydantic import BaseModel
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
-AWS_REGION = os.getenv("AWS_REGION")
+AWS_REGION = os.getenv("AWS_REGION", "AWS_DEFAULT_REGION")
 YOUTUBE_API_URL = "https://youtube.googleapis.com/youtube/v3/commentThreads"
 
 tracer = Tracer()
 logger = Logger()
 metrics = Metrics()
-
-table = os.getenv("IDEMPOTENCY_TABLE", "")
-persistence_layer = DynamoDBPersistenceLayer(table_name=table)
-config = IdempotencyConfig(
-    event_key_jmespath="video_id",
-    use_local_cache=True,
-)
 
 
 s3 = boto3.client("s3")
@@ -210,7 +199,6 @@ class Event(BaseModel):
 
 
 @event_parser(model=Event)
-# @idempotent(config=config, persistence_store=persistence_layer)
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context
 @metrics.log_metrics(capture_cold_start_metric=True)
