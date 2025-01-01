@@ -93,7 +93,7 @@ jobs:
         run: sam build --config-env ${{ env.ENVIRONMENT }}
       - name: Run integration test
         env:
-          FUNCTION_NAME: YoutubeCommentSentimentAnalysisFunction
+          FUNCTION_NAME: test-aws-cli-actions-youtube-comment-sentiment-analysis
         run: |
           aws lambda invoke \
             --function-name ${{ env.FUNCTION_NAME }} \
