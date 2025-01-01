@@ -23,20 +23,6 @@ jobs:
     if: github.ref_name == 'test'
     steps:
       - uses: actions/checkout@v3
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          audience: sts.amazonaws.com
-          aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::639269844451:role/github-actions
-      - name: Setup SAM
-        uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
-      - name: Validate SAM Template
-        run: sam validate --lint --config-env ${{ env.ENVIRONMENT }}
-      - name: Build SAM Application
-        run: sam build --config-env ${{ env.ENVIRONMENT }}
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: Set up Python
@@ -87,8 +73,6 @@ jobs:
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
-      - name: Validate SAM Template
-        run: sam validate --lint --config-env ${{ env.ENVIRONMENT }}
       - name: Build SAM Application
         run: sam build --config-env ${{ env.ENVIRONMENT }}
       - name: Run integration test
