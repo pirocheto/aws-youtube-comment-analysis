@@ -24,4 +24,4 @@ test:
 	pytest -s .
 
 test-local:
-	sam local invoke YoutubeCommentSentimentAnalysisFunction  --config-env test
+	sam local invoke YoutubeCommentSentimentAnalysisFunction --config-env test
