@@ -15,6 +15,7 @@ env:
       github.ref_name == 'main' && 'prod' || 
       github.ref_name == 'test' && 'test'
     }}
+  AWS_REGION: eu-west-1
   SAM_CLI_TELEMETRY: 0
 
 jobs:
@@ -23,12 +24,26 @@ jobs:
     if: github.ref_name == 'test'
     steps:
       - uses: actions/checkout@v3
+
+      # Cache UV dependencies
+      - name: Cache UV dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+
+      # Install dependencies
       - name: Set up Python
         run: uv python install
       - name: Install the project
         run: uv sync --group test
+
+      # Run unit tests
       # - name: Run tests
       #   run: uv run pytest -s .
 
@@ -37,22 +52,36 @@ jobs:
     needs: unit-test
     steps:
       - uses: actions/checkout@v3
+
+      # Cache SAM build artifacts
+      - name: Cache SAM build artifacts
+        uses: actions/cache@v3
+        with:
+          path: .aws-sam/build
+          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-sam-build-
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           audience: sts.amazonaws.com
-          aws-region: eu-west-1
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
+
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
+
       # Build inside Docker containers
       - name: Build SAM Application
         run: sam build --config-env ${{ env.ENVIRONMENT }}
+
       # Package SAM Application
       - name: Package SAM Application
         run: sam package --config-env ${{ env.ENVIRONMENT }}
+
       # Prevent prompts and failure when the stack is unchanged
       - name: Deploy SAM Application
         run: sam deploy --config-env ${{ env.ENVIRONMENT }}
@@ -63,18 +92,31 @@ jobs:
     needs: deploy
     steps:
       - uses: actions/checkout@v3
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           audience: sts.amazonaws.com
-          aws-region: eu-west-1
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
+
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
+
+      # Cache SAM build artifacts
+      - name: Cache SAM build artifacts
+        uses: actions/cache@v3
+        with:
+          path: .aws-sam/build
+          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-sam-build-
+
       - name: Build SAM Application
         run: sam build --config-env ${{ env.ENVIRONMENT }}
+
       - name: Run integration test
         env:
           FUNCTION_NAME: test-youtube-comment-sentiment-analysis
