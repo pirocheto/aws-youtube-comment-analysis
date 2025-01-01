@@ -1,6 +1,7 @@
 on:
   push:
     branches:
+      - test
       - main
   workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
@@ -9,7 +10,11 @@ permissions:
   contents: read # This is required for actions/checkout
 
 env:
-  ENVIRONMENT: prod
+  ENVIRONMENT: >
+    ${{ 
+      github.ref_name == 'main' && 'prod' || 
+      github.ref_name == 'test' && 'test'
+    }}
   SAM_CLI_TELEMETRY: 0
 
 jobs:
@@ -29,8 +34,8 @@ jobs:
         run: uv python install
       - name: Install the project
         run: uv sync --dev
-      # - name: Run tests
-      #   run: pytest -s .
+      - name: Run tests
+        run: pytest -s .
 
   deploy:
     runs-on: ubuntu-latest

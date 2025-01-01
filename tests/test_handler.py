@@ -4,8 +4,6 @@ import pytest
 from aws_lambda_powertools import Metrics
 from aws_lambda_powertools.metrics.provider import cold_start
 
-from src.app import lambda_handler
-
 
 @pytest.fixture(scope="function", autouse=True)
 def reset_metric_set():
@@ -19,6 +17,7 @@ def reset_metric_set():
 
 @pytest.fixture(scope="function", autouse=True)
 def mocked_env(monkeypatch):
+    monkeypatch.setenv("BUCKET_NAME", "youtube-comment-sentiment-analysis")
     monkeypatch.setenv("POWERTOOLS_SERVICE_NAME", "YouTubeSentimentAnalysis")
     monkeypatch.setenv("POWERTOOLS_METRICS_NAMESPACE", "YouTubeSentimentAnalysis")
 
@@ -41,7 +40,9 @@ def context():
     return LambdaContext
 
 
-def test_lambda_handler(context):
+def test_lambda_handler(context, mocked_env):
+    from src.app import lambda_handler
+
     event = {"video_id": "Ps5kScYvQQk"}
 
     response = lambda_handler(event, context)

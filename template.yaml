@@ -5,9 +5,9 @@ Description: Youtube comment sentiment analysis service
 Parameters:
   Environment:
     Type: String
-    Default: dev
+    Default: test
     AllowedValues:
-      - dev
+      - test
       - prod
     Description: Environment
 
@@ -15,7 +15,7 @@ Resources:
   YoutubeCommentSentimentAnalysisFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: youtube-comment-sentiment-analysis
+      FunctionName: !Sub ${Environment}-youtube-comment-sentiment-analysis
       Handler: app.lambda_handler
       CodeUri: ./src
       Description: Fetches comments from youtube video and performs sentiment analysis
@@ -26,8 +26,8 @@ Resources:
       Tracing: Active
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: YoutubeCommentSentimentAnalysis
-          POWERTOOLS_METRICS_NAMESPACE: YoutubeCommentSentimentAnalysis
+          POWERTOOLS_SERVICE_NAME: ProdYoutubeCommentSentimentAnalysis
+          POWERTOOLS_METRICS_NAMESPACE: ProdYoutubeCommentSentimentAnalysis
           LOG_LEVEL: INFO
           BUCKET_NAME: !Ref YoutubeCommentSentimentAnalysisBucket
       Policies: 
@@ -43,7 +43,7 @@ Resources:
   YoutubeCommentSentimentAnalysisBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: youtube-comment-sentiment-analysis
+      BucketName: !Sub ${Environment}-youtube-comment-sentiment-analysis
 
 
 Outputs:

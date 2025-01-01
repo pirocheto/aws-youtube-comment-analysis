@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -16,7 +17,6 @@ YOUTUBE_API_URL = "https://youtube.googleapis.com/youtube/v3/commentThreads"
 tracer = Tracer()
 logger = Logger()
 metrics = Metrics()
-
 
 s3 = boto3.client("s3")
 comprehend = boto3.client("comprehend")
@@ -140,14 +140,13 @@ class YouTubeCommentsProcessor:
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
         s3_key = f"landing/{video_id}-{timestamp}.json"
 
-        # Uncomment and configure S3 client to enable uploading
-        # s3.put_object(
-        #     Bucket=BUCKET_NAME,
-        #     Key=s3_key,
-        #     Body=json.dumps(comments),
-        #     ContentType="application/json",
-        #     ContentEncoding="utf8",
-        # )
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=s3_key,
+            Body=json.dumps(comments),
+            ContentType="application/json",
+            ContentEncoding="utf8",
+        )
 
         return s3_key
 
