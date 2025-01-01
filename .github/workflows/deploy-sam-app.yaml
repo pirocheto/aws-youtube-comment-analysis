@@ -25,17 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Cache UV dependencies
-      - name: Cache UV dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-uv-
-
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
 
       # Install dependencies
       - name: Set up Python
@@ -55,6 +48,7 @@ jobs:
 
       # Cache SAM build artifacts
       - name: Cache SAM build artifacts
+        id: cache-sam-build
         uses: actions/cache@v3
         with:
           path: .aws-sam/build
@@ -76,6 +70,7 @@ jobs:
 
       # Build inside Docker containers
       - name: Build SAM Application
+        if: ${{ steps.cache-sam-build.outputs.cache-hit != 'true' }}
         run: sam build --config-env ${{ env.ENVIRONMENT }}
 
       # Package SAM Application
@@ -95,6 +90,7 @@ jobs:
 
       # Cache SAM build artifacts
       - name: Cache SAM build artifacts
+        id: cache-sam-build
         uses: actions/cache@v3
         with:
           path: .aws-sam/build
@@ -115,6 +111,7 @@ jobs:
           use-installer: true
 
       - name: Build SAM Application
+        if: ${{ steps.cache-sam-build.outputs.cache-hit != 'true' }}
         run: sam build --config-env ${{ env.ENVIRONMENT }}
 
       - name: Run integration test
