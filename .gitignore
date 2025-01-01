@@ -12,3 +12,4 @@ wheels/
 .pytest_cache/
 .aws-sam/
 packaged-template.yaml
+output.json

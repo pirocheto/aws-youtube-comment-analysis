@@ -94,4 +94,10 @@ jobs:
       - name: Run integration test
         env:
           FUNCTION_NAME: YoutubeCommentSentimentAnalysisFunction
-        run: pytest -s .
+        run: |
+          aws lambda invoke \
+            --function-name ${{ env.FUNCTION_NAME }} \
+            --cli-binary-format raw-in-base64-out \
+            --payload file://events/event.json \
+            output.json
+          cat output.json

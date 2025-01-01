@@ -23,5 +23,8 @@ validate:
 test:
 	pytest -s .
 
-test-local:
-	sam local invoke YoutubeCommentSentimentAnalysisFunction --config-env test
+invoke-local:
+	sam local invoke test-youtube-comment-sentiment-analysis --config-env test- output.json
+
+invoke:
+	aws lambda invoke --function-name test-youtube-comment-sentiment-analysis --cli-binary-format raw-in-base64-out --payload file://events/event.json output.json
