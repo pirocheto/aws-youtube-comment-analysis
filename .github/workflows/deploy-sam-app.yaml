@@ -100,4 +100,4 @@ jobs:
             --cli-binary-format raw-in-base64-out \
             --payload file://events/event.json \
             output.json
-          cat output.json
+          cat output.json | jq
