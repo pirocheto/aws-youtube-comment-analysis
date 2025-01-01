@@ -101,7 +101,7 @@ jobs:
 
       - name: Run integration test
         env:
-          FUNCTION_NAME: test-youtube-comment-sentiment-analysis
+          FUNCTION_NAME: ${{ env.ENVIRONMENT }}-youtube-comment-sentiment-analysis
         run: |
           aws lambda invoke \
             --function-name ${{ env.FUNCTION_NAME }} \

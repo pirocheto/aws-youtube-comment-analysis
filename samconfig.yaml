@@ -4,7 +4,7 @@ test:
   global:
     parameters:
       stack_name: test-youtube-comment-sentiment-analysis
-      s3_bucket: test-sam-cli-artifact-youtube-comment-sentiment-analysis
+      s3_bucket: test-sam-cli-artifacts-youtube-comment-sentiment-analysis
   local_invoke:
     parameters:
       template_file: .aws-sam/build/template.yaml
@@ -29,7 +29,7 @@ prod:
   global:
     parameters:
       stack_name: prod-youtube-comment-sentiment-analysis
-      s3_bucket: prod-sam-cli-artifact-youtube-comment-sentiment-analysis
+      s3_bucket: prod-sam-cli-artifacts-youtube-comment-sentiment-analysis
   build:
     parameters:
       use_container: true
