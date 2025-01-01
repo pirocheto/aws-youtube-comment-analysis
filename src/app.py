@@ -11,7 +11,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from pydantic import BaseModel
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
-AWS_REGION = os.getenv("AWS_REGION", "AWS_DEFAULT_REGION")
+AWS_REGION = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION"))
 YOUTUBE_API_URL = "https://youtube.googleapis.com/youtube/v3/commentThreads"
 
 tracer = Tracer()
