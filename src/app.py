@@ -227,6 +227,5 @@ def lambda_handler(event: Event, context: LambdaContext) -> dict:
             "bucket_name": BUCKET_NAME,
             "bucket_key": s3_key,
             "s3_uri": f"s3://{BUCKET_NAME}/{s3_key}",
-            "object_url": f"https://{BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{s3_key}",
         },
     }
