@@ -18,3 +18,6 @@ validate:
 .PHONY: test
 test:
 	pytest -s .
+
+test-local:
+	sam local invoke YoutubeCommentSentimentAnalysisFunction --event events/event.json

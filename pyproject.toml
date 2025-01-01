@@ -4,15 +4,13 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["requests>=2.32.3"]
+dependencies = [
+    "requests>=2.32.3",
+    "aws-lambda-powertools[parser,tracer]>=3.4.0",
+]
 
 [dependency-groups]
-dev = [
-    "aws-lambda-powertools[parser,tracer]>=3.4.0",
-    "boto3>=1.35.87",
-    "mypy>=1.14.0",
-    "pytest>=8.3.4",
-]
+dev = ["boto3>=1.35.87", "mypy>=1.14.0", "pytest>=8.3.4"]
 
 
 [tool.mypy]
