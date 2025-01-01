@@ -7,6 +7,10 @@ requirements:
 build:
 	sam build --config-env prod
 
+.PHONY: package
+package:
+	sam package --config-env prod
+
 .PHONY: deploy
 deploy:
 	sam deploy --config-env prod

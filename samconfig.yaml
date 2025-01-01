@@ -3,15 +3,19 @@ prod:
   global:
     parameters:
       stack_name: youtube-comment-sentiment-analysis
+      s3_bucket: aws-sam-cli-youtube-comment-sentiment-analysis
   build:
     parameters:
       use_container: true
+  package:
+    parameters:
+      template_file: .aws-sam/build/template.yaml
+      output_template_file: packaged-template.yaml
   deploy:
     parameters:
-      template_file: template.yaml
+      template_file: packaged-template.yaml
       disable_rollback: true
       parameter_overrides: "Environment=prod"
       fail_on_empty_changeset: false
-      s3_bucket: aws-sam-cli-youtube-comment-sentiment-analysis
       capabilities:
         - CAPABILITY_IAM

@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: # Allows you to run this workflow manually from the Actions tab
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -49,6 +50,9 @@ jobs:
       # Build inside Docker containers
       - name: Build SAM Application
         run: sam build --config-env ${{ env.ENVIRONMENT }}
+      # Package SAM Application
+      - name: Package SAM Application
+        run: sam package --config-env ${{ env.ENVIRONMENT }}
       # Prevent prompts and failure when the stack is unchanged
       - name: Deploy SAM Application
         run: sam deploy --config-env ${{ env.ENVIRONMENT }}
