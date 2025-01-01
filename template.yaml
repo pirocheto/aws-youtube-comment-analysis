@@ -33,6 +33,8 @@ Resources:
       Policies: 
         - S3WritePolicy:
             BucketName: !Ref YoutubeCommentSentimentAnalysisBucket
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: arn:aws:secretsmanager:eu-west-1:639269844451:secret:test/YoutubeSentimentAnalysis-CVq1ik
       Tags:
         service: !Ref AWS::StackName
         environment: !Ref Environment
