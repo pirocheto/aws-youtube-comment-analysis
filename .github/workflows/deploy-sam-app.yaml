@@ -20,6 +20,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    if: github.ref_name == 'test'
     steps:
       - uses: actions/checkout@v3
       - name: Configure AWS Credentials
