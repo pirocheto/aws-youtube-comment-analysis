@@ -7,7 +7,7 @@ test:
       s3_bucket: test-sam-cli-youtube-comment-sentiment-analysis
   local_invoke:
     parameters:
-      template_file: template.yaml
+      template_file: .aws-sam/build/template.yaml
       event_file: events/event.json
   build:
     parameters:
