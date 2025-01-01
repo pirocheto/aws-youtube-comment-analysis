@@ -92,6 +92,31 @@ jobs:
     needs: deploy
     steps:
       - uses: actions/checkout@v3
+
+      # Cache SAM build artifacts
+      - name: Cache SAM build artifacts
+        uses: actions/cache@v3
+        with:
+          path: .aws-sam/build
+          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-sam-build-
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::639269844451:role/github-actions
+
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Build SAM Application
+        run: sam build --config-env ${{ env.ENVIRONMENT }}
+
       - name: Run integration test
         env:
           FUNCTION_NAME: test-youtube-comment-sentiment-analysis
