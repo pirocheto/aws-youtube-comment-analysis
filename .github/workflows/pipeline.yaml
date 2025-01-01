@@ -1,3 +1,5 @@
+name: Pipeline
+
 on:
   push:
     branches:
@@ -62,6 +64,7 @@ jobs:
           audience: sts.amazonaws.com
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
+          role-session-name: testing-deployment
 
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
@@ -94,6 +97,7 @@ jobs:
           audience: sts.amazonaws.com
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
+          role-session-name: testing-integration
 
       - name: Run integration test
         env:

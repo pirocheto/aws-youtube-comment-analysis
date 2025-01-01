@@ -4,7 +4,7 @@ test:
   global:
     parameters:
       stack_name: test-youtube-comment-sentiment-analysis
-      s3_bucket: test-sam-cli-youtube-comment-sentiment-analysis
+      s3_bucket: test-sam-cli-artifact-youtube-comment-sentiment-analysis
   local_invoke:
     parameters:
       template_file: .aws-sam/build/template.yaml
@@ -15,10 +15,10 @@ test:
   package:
     parameters:
       template_file: .aws-sam/build/template.yaml
-      output_template_file: test-packaged-template.yaml
+      output_template_file: packaged-testing-template.yaml
   deploy:
     parameters:
-      template_file: test-packaged-template.yaml
+      template_file: packaged-testing-template.yaml
       disable_rollback: true
       parameter_overrides: "Environment=test"
       fail_on_empty_changeset: false
@@ -29,17 +29,17 @@ prod:
   global:
     parameters:
       stack_name: prod-youtube-comment-sentiment-analysis
-      s3_bucket: prod-sam-cli-youtube-comment-sentiment-analysis
+      s3_bucket: prod-sam-cli-artifact-youtube-comment-sentiment-analysis
   build:
     parameters:
       use_container: true
   package:
     parameters:
       template_file: .aws-sam/build/template.yaml
-      output_template_file: prod-packaged-template.yaml
+      output_template_file: packaged-prod-template.yaml
   deploy:
     parameters:
-      template_file: prod-packaged-template.yaml
+      template_file: packaged-prod-template.yaml
       disable_rollback: true
       parameter_overrides: "Environment=prod"
       fail_on_empty_changeset: false

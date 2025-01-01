@@ -13,3 +13,4 @@ wheels/
 .aws-sam/
 packaged-template.yaml
 output.json
+sam-pipeline/
