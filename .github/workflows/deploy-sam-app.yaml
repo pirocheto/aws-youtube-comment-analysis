@@ -52,7 +52,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .aws-sam/build
-          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml') }}
+          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml', 'src/**/*', 'samconfig.yaml') }}
           restore-keys: |
             ${{ runner.os }}-sam-build-
 
