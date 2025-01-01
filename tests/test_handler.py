@@ -17,7 +17,6 @@ def reset_metric_set():
 
 @pytest.fixture(scope="function", autouse=True)
 def mocked_env(monkeypatch):
-    monkeypatch.setenv("AWS_REGION", "eu-west-1")
     monkeypatch.setenv("BUCKET_NAME", "test-youtube-comment-sentiment-analysis")
     monkeypatch.setenv("POWERTOOLS_SERVICE_NAME", "YouTubeSentimentAnalysis")
     monkeypatch.setenv("POWERTOOLS_METRICS_NAMESPACE", "YouTubeSentimentAnalysis")
