@@ -18,8 +18,8 @@ tracer = Tracer()
 logger = Logger()
 metrics = Metrics()
 
-s3 = boto3.client("s3")
-comprehend = boto3.client("comprehend")
+s3 = boto3.client("s3", region_name=AWS_REGION)
+comprehend = boto3.client("comprehend", region_name=AWS_REGION)
 
 
 class YouTubeCommentsProcessor:
