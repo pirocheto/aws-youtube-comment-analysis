@@ -11,7 +11,10 @@ dependencies = [
 
 [dependency-groups]
 dev = ["boto3>=1.35.87", "mypy>=1.14.0", "pytest>=8.3.4"]
-test = ["pytest>=8.3.4"]
+test = [
+    "boto3>=1.35.90",
+    "pytest>=8.3.4",
+]
 
 [tool.mypy]
 disallow_untyped_calls = true

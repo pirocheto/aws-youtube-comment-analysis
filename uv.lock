@@ -60,6 +60,7 @@ dev = [
     { name = "pytest" },
 ]
 test = [
+    { name = "boto3" },
     { name = "pytest" },
 ]
 
@@ -75,7 +76,10 @@ dev = [
     { name = "mypy", specifier = ">=1.14.0" },
     { name = "pytest", specifier = ">=8.3.4" },
 ]
-test = [{ name = "pytest", specifier = ">=8.3.4" }]
+test = [
+    { name = "boto3", specifier = ">=1.35.90" },
+    { name = "pytest", specifier = ">=8.3.4" },
+]
 
 [[package]]
 name = "boto3"
