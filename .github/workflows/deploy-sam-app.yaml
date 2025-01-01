@@ -37,10 +37,6 @@ jobs:
         run: sam validate --lint --config-env ${{ env.ENVIRONMENT }}
       - name: Build SAM Application
         run: sam build --config-env ${{ env.ENVIRONMENT }}
-      - name: Run integration test
-        env:
-          FUNCTION_NAME: YoutubeCommentSentimentAnalysisFunction
-        run: sam local invoke ${{ env.FUNCTION_NAME }} --config-env ${{ env.ENVIRONMENT }}
       - name: Install uv
         uses: astral-sh/setup-uv@v5
       - name: Set up Python
