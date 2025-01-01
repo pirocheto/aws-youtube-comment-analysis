@@ -22,6 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::639269844451:role/github-actions
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
         with:
