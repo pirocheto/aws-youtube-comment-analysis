@@ -18,7 +18,7 @@ env:
   SAM_CLI_TELEMETRY: 0
 
 jobs:
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     if: github.ref_name == 'test'
     steps:
@@ -37,16 +37,16 @@ jobs:
         run: sam validate --lint --config-env ${{ env.ENVIRONMENT }}
       - name: Build SAM Application
         run: sam build --config-env ${{ env.ENVIRONMENT }}
-      - name: Run local test
+      - name: Run integration test
         env:
           FUNCTION_NAME: YoutubeCommentSentimentAnalysisFunction
         run: sam local invoke ${{ env.FUNCTION_NAME }} --config-env ${{ env.ENVIRONMENT }}
-      # - name: Install uv
-      #   uses: astral-sh/setup-uv@v5
-      # - name: Set up Python
-      #   run: uv python install
-      # - name: Install the project
-      #   run: uv sync --group test
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        run: uv python install
+      - name: Install the project
+        run: uv sync --group test
       # - name: Run tests
       #   run: uv run pytest -s .
 
@@ -74,3 +74,27 @@ jobs:
       # Prevent prompts and failure when the stack is unchanged
       - name: Deploy SAM Application
         run: sam deploy --config-env ${{ env.ENVIRONMENT }}
+
+  integration-test:
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'test'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::639269844451:role/github-actions
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - name: Validate SAM Template
+        run: sam validate --lint --config-env ${{ env.ENVIRONMENT }}
+      - name: Build SAM Application
+        run: sam build --config-env ${{ env.ENVIRONMENT }}
+      - name: Run integration test
+        env:
+          FUNCTION_NAME: YoutubeCommentSentimentAnalysisFunction
+        run: pytest -s .
