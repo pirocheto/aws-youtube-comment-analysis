@@ -12,6 +12,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "boto3>=1.35.87",
+    "cfn-lint>=1.22.3",
     "diagrams>=0.24.1",
     "mypy>=1.14.0",
     "pytest>=8.3.4",

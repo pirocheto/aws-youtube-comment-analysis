@@ -14,3 +14,4 @@ wheels/
 packaged-template.yaml
 output.json
 sam-pipeline/
+.vscode/
