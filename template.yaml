@@ -76,41 +76,41 @@ Resources:
           Columns:
             - Name: id
               Type: string
-            - Name: channelId
+            - Name: channel_id
               Type: string
-            - Name: videoId
+            - Name: video_id
               Type: string
-            - Name: textDisplay
+            - Name: text_display
               Type: string
-            - Name: textOriginal
+            - Name: text_original
               Type: string
-            - Name: authorDisplayName
+            - Name: author_display_name
               Type: string
-            - Name: authorProfileImageUrl
+            - Name: author_profile_image_url
               Type: string
-            - Name: authorChannelUrl
+            - Name: author_channel_url
               Type: string
-            - Name: authorChannelId
+            - Name: author_channel_id
               Type: string
-            - Name: canRate
+            - Name: can_rate
               Type: boolean
-            - Name: viewerRating
+            - Name: viewer_rating
               Type: string
-            - Name: likeCount
+            - Name: like_count
               Type: int
-            - Name: publishedAt
+            - Name: published_at
               Type: timestamp
-            - Name: updatedAt
+            - Name: updated_at
               Type: timestamp
-            - Name: parentId
+            - Name: parent_id
               Type: string
             - Name: sentiment
               Type: string
-            - Name: sentimentScorePositive
+            - Name: sentiment_score_positive
               Type: float
-            - Name: sentimentScoreNegative
+            - Name: sentiment_score_negative
               Type: float
-            - Name: sentimentScoreNeutral
+            - Name: sentiment_score_neutral
               Type: float
           Location: !Sub s3://${S3Bucket}/data/
           InputFormat: "org.apache.hadoop.mapred.TextInputFormat"
