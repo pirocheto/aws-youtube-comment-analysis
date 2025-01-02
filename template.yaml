@@ -129,12 +129,10 @@ Resources:
       Tags:
         service: !Ref AWS::StackName
 
-
-
   AppRegistryAssociation:
     Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
     Properties:
-      Application: !GetAtt MyApplication.Arn
+      Application: !GetAtt AppRegistry.Arn
       Resource: !Ref AWS::StackId
       ResourceType: CFN_STACK
   
