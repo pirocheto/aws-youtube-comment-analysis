@@ -128,11 +128,12 @@ Resources:
       Description: Logical application grouping for Youtube Comment Sentiment Analysis resources
       Tags:
         service: !Ref AWS::StackName
+        env: !Ref Env
 
   AppRegistryAssociation:
     Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
     Properties:
-      Application: !GetAtt AppRegistry.Arn
+      Application: !Ref AppRegistry
       Resource: !Ref AWS::StackId
       ResourceType: CFN_STACK
   
