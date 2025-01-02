@@ -11,8 +11,6 @@ Parameters:
       - prod
     Description: Environment to deploy the stack
 
-
-
 Resources:
   YoutubeCommentSentimentAnalysisFunction:
     Type: AWS::Serverless::Function
@@ -42,6 +40,7 @@ Resources:
       Tags:
         Service: !Ref AWS::StackName
         Env: !Ref Env
+        awsApplication: !GetAtt AppRegistry.ApplicationTagValue
 
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -52,6 +51,8 @@ Resources:
           Value: !Ref AWS::StackName
         - Key: Env
           Value: !Ref Env
+        - Key: awsApplication
+          Value: !GetAtt AppRegistry.ApplicationTagValue
 
   GlueDatabase:
     Type: AWS::Glue::Database
