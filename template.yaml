@@ -11,10 +11,7 @@ Parameters:
       - prod
     Description: Environment to deploy the stack
 
-  ServiceName:
-    Type: String
-    Default: YoutubeCommentSentimentAnalysis
-    Description: Name of the service
+
 
 Resources:
   YoutubeCommentSentimentAnalysisFunction:
@@ -43,7 +40,7 @@ Resources:
         - AWSSecretsManagerGetSecretValuePolicy:
             SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:test/YoutubeSentimentAnalysis-CVq1ik
       Tags:
-        Service: !Ref ServiceName
+        Service: !Ref AWS::StackName
         Env: !Ref Env
 
   S3Bucket:
@@ -52,7 +49,7 @@ Resources:
       BucketName: !Sub ${Env}-youtube-comment-sentiment-analysis
       Tags:
         - Key: Service
-          Value: !Ref ServiceName
+          Value: !Ref AWS::StackName
         - Key: Env
           Value: !Ref Env
 
@@ -126,8 +123,7 @@ Resources:
       Name: !Sub ${Env}-youtube-comment-sentiment-analysis
       Description: Logical application grouping for Youtube Comment Sentiment Analysis resources
       Tags:
-        Environment: !Ref Env
-        Project: YoutubeCommentSentimentAnalysis
+        service: !Ref AWS::StackName
 
   AppRegistryAssociation:
     Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
