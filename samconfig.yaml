@@ -20,7 +20,7 @@ test:
     parameters:
       template_file: packaged-testing-template.yaml
       disable_rollback: true
-      parameter_overrides: "Environment=test"
+      parameter_overrides: "Env=test"
       fail_on_empty_changeset: false
       capabilities:
         - CAPABILITY_IAM
@@ -41,7 +41,7 @@ prod:
     parameters:
       template_file: packaged-prod-template.yaml
       disable_rollback: true
-      parameter_overrides: "Environment=prod"
+      parameter_overrides: "Env=prod"
       fail_on_empty_changeset: false
       capabilities:
         - CAPABILITY_IAM

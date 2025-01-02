@@ -3,19 +3,19 @@ Transform: AWS::Serverless-2016-10-31
 Description: Youtube comment sentiment analysis service
 
 Parameters:
-  Environment:
+  Env:
     Type: String
     Default: test
     AllowedValues:
       - test
       - prod
-    Description: Environment
+    Description: Environment to deploy the stack
 
 Resources:
   YoutubeCommentSentimentAnalysisFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${Environment}-youtube-comment-sentiment-analysis
+      FunctionName: !Sub ${Env}-youtube-comment-sentiment-analysis
       Handler: app.lambda_handler
       CodeUri: ./src
       Description: Fetches comments from youtube video and performs sentiment analysis
@@ -30,6 +30,7 @@ Resources:
           POWERTOOLS_METRICS_NAMESPACE: ProdYoutubeCommentSentimentAnalysis
           LOG_LEVEL: INFO
           BUCKET_NAME: !Ref YoutubeCommentSentimentAnalysisBucket
+          ENVIROMENT: !Ref Env
       Policies: 
         - ComprehendBasicAccessPolicy: {}
         - S3WritePolicy:
@@ -38,12 +39,76 @@ Resources:
             SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:test/YoutubeSentimentAnalysis-CVq1ik
       Tags:
         service: !Ref AWS::StackName
-        environment: !Ref Environment
+        Env: !Ref Env
 
   YoutubeCommentSentimentAnalysisBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${Environment}-youtube-comment-sentiment-analysis
+      BucketName: !Sub ${Env}-youtube-comment-sentiment-analysis
+
+  GlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref "AWS::AccountId"
+      DatabaseInput:
+        Name: !Sub ${Env}_youtube_comments
+
+  GlueTable:
+    Type: AWS::Glue::Table
+    Properties:
+      CatalogId: !Ref "AWS::AccountId"
+      DatabaseName: !Ref GlueDatabase
+      TableInput:
+        Name: ${Env}_youtube_comments_analytics
+        TableType: EXTERNAL_TABLE
+        StorageDescriptor:
+          Columns:
+            - Name: id
+              Type: string
+            - Name: channelId
+              Type: string
+            - Name: videoId
+              Type: string
+            - Name: textDisplay
+              Type: string
+            - Name: textOriginal
+              Type: string
+            - Name: authorDisplayName
+              Type: string
+            - Name: authorProfileImageUrl
+              Type: string
+            - Name: authorChannelUrl
+              Type: string
+            - Name: authorChannelId
+              Type: string
+            - Name: canRate
+              Type: boolean
+            - Name: viewerRating
+              Type: string
+            - Name: likeCount
+              Type: int
+            - Name: publishedAt
+              Type: timestamp
+            - Name: updatedAt
+              Type: timestamp
+            - Name: parentId
+              Type: string
+            - Name: sentiment
+              Type: string
+            - Name: sentimentScorePositive
+              Type: double
+            - Name: sentimentScoreNegative
+              Type: double
+            - Name: sentimentScoreNeutral
+              Type: double
+          Location: !Sub s3://${YoutubeCommentSentimentAnalysisBucket}/data/
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+        Parameters:
+          classification: json
+          typeOfData: file
 
 
 Outputs:
@@ -53,4 +118,9 @@ Outputs:
   YoutubeCommentSentimentAnalysisBucketArn:
     Description: "Youtube Comment Sentiment Analysis Bucket ARN"
     Value: !GetAtt YoutubeCommentSentimentAnalysisBucket.Arn
-
+  YoutubeCommentSentimentAnalysisGlueDatabaseName:
+    Description: "Name of the Glue Database"
+    Value: !Ref GlueDatabase
+  YoutubeCommentSentimentAnalysisGlueAnalyticsTableName:
+    Description: "Name of the Glue Table"
+    Value: !GetAtt GlueTable.TableInput.Name

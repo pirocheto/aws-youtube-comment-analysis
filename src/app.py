@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
 AWS_REGION = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION"))
+ENVIRONMENT = os.getenv("ENVIRONMENT", "test")
 YOUTUBE_API_URL = "https://youtube.googleapis.com/youtube/v3/commentThreads"
 
 tracer = Tracer()
@@ -138,7 +139,7 @@ class YouTubeCommentsProcessor:
         """Upload comments to an S3 bucket and return the S3 key."""
 
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
-        s3_key = f"landing/{video_id}-{timestamp}.json"
+        s3_key = f"data/{video_id}-{timestamp}.json"
 
         s3.put_object(
             Bucket=BUCKET_NAME,
@@ -208,7 +209,8 @@ def lambda_handler(event: Event, context: LambdaContext) -> dict:
     video_id = event.video_id
 
     # Initialize the processor with the API key
-    api_key = parameters.get_secret("test/YoutubeSentimentAnalysis")
+    secret_name = f"{ENVIRONMENT}/YoutubeSentimentAnalysis"
+    api_key = parameters.get_secret(secret_name)
 
     # Retrieve and process comments
     comments = processor.retrieve_all_comments(video_id, api_key)
