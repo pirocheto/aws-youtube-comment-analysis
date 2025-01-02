@@ -178,7 +178,7 @@ class YouTubeCommentsProcessor:
             )
 
             response = comprehend.batch_detect_sentiment(
-                TextList=[comment["textDisplay"] for comment in batch],
+                TextList=[comment["text_display"] for comment in batch],
                 LanguageCode="fr",
             )
 
