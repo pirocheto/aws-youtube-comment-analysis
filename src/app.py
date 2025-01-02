@@ -69,14 +69,14 @@ class YouTubeCommentsProcessor:
         """Format a single comment for storage."""
 
         author_channel_id = (
-            comment_data["snippet"].get("authorChannelId", {}).get("value")
+            comment_data["snippet"].get("authorChannelId", {}).get("value", "none")
         )
 
         return {
             "id": comment_data["id"],
             **comment_data["snippet"],
             "authorChannelId": author_channel_id,
-            "parentId": comment_data.get("parentId"),
+            "parentId": comment_data.get("parentId", "none"),
         }
 
     @tracer.capture_method

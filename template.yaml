@@ -3,9 +3,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 
   - AWS::Serverless-2016-10-31
 
-  
-# Transform: AWS::LanguageExtensions
-
 Description: Youtube comment sentiment analysis service
 
 Parameters:
@@ -134,22 +131,13 @@ Resources:
 
 
 
-  LambdaFunctionAppRegistryAssociation:
+  AppRegistryAssociation:
     Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
     Properties:
-      Application: !Ref AppRegistry
-      Resource: !Ref YoutubeCommentSentimentAnalysisFunction
+      Application: !GetAtt MyApplication.Arn
+      Resource: !Ref AWS::StackId
       ResourceType: CFN_STACK
-
-  S3BucketAppRegistryAssociation:
-    Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
-    Properties:
-      Application: !Ref AppRegistry
-      Resource: !Ref S3Bucket
-      ResourceType: CFN_STACK
-
-
-
+  
 
 Outputs:
   YoutubeCommentSentimentAnalysisFunctionArn:
