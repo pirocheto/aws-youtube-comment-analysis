@@ -62,7 +62,7 @@ Resources:
     Properties:
       CatalogId: !Ref "AWS::AccountId"
       DatabaseInput:
-        Name: !Sub ${Env}_youtube_comments
+        Name: !Sub ${Env}_youtube_comment
 
   GlueTable:
     Type: AWS::Glue::Table
@@ -70,7 +70,7 @@ Resources:
       CatalogId: !Ref "AWS::AccountId"
       DatabaseName: !Ref GlueDatabase
       TableInput:
-        Name: !Sub ${Env}_youtube_comments_analytics
+        Name: !Sub ${Env}_youtube_comment_analytics
         TableType: EXTERNAL_TABLE
         StorageDescriptor:
           Columns:
