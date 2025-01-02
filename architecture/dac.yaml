@@ -1,0 +1,60 @@
+Diagram:
+  DefinitionFiles:
+    - Type: URL
+      Url: https://raw.githubusercontent.com/awslabs/diagram-as-code/main/definitions/definition-for-aws-icons-light.yaml
+  Resources:
+    Canvas:
+      Type: AWS::Diagram::Canvas
+      Children:
+        - AWSCloud
+    AWSCloud:
+      Type: AWS::Diagram::Cloud
+      Preset: AWSCloudNoLogo
+      Children:
+        - Lambda
+        - S3Bucket
+        - DataCatalog
+        - Athena
+
+    
+    Lambda:
+      Type: AWS::Lambda
+      Title: test-youtube-comment-sentiment-analysis
+
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Title: test-youtube-comment-sentiment-analysis
+
+    DataCatalog:
+      Type: AWS::Glue
+      Preset: AWS Glue Data Catalog
+      Title: test_youtube_comments_analytics
+
+    Athena:
+      Type: AWS::Athena
+      Title: test_youtube_comments_analytics
+    
+
+
+  Links:
+    - Source: Lambda
+      SourcePosition: E
+      Target: S3Bucket
+      TargetPosition: W
+      TargetArrowHead:
+        Type: Default
+
+    - Source: DataCatalog
+      SourcePosition: W
+      Target: S3Bucket
+      TargetPosition: E
+      TargetArrowHead:
+        Type: Default
+
+    - Source: Athena
+      SourcePosition: W
+      Target: DataCatalog
+      TargetPosition: E
+      TargetArrowHead:
+        Type: Default
+        
