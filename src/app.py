@@ -140,11 +140,12 @@ class YouTubeCommentsProcessor:
 
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
         s3_key = f"data/{video_id}-{timestamp}.json"
+        body = "\n".join([json.dumps(comment) for comment in comments])
 
         s3.put_object(
             Bucket=BUCKET_NAME,
             Key=s3_key,
-            Body=json.dumps(comments),
+            Body=body,
             ContentType="application/json",
             ContentEncoding="utf8",
         )
