@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 import boto3
+import inflection
 import requests
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
@@ -72,12 +73,19 @@ class YouTubeCommentsProcessor:
             comment_data["snippet"].get("authorChannelId", {}).get("value", "none")
         )
 
-        return {
+        snippet_snake_case = {}
+        for key, value in comment_data["snippet"].items():
+            new_key = inflection.underscore(key)
+            snippet_snake_case[new_key] = value
+
+        data = {
             "id": comment_data["id"],
-            **comment_data["snippet"],
-            "authorChannelId": author_channel_id,
-            "parentId": comment_data.get("parentId", "none"),
+            **snippet_snake_case,
+            "author_channel_id": author_channel_id,
+            "parent_id": comment_data.get("parentId", "none"),
         }
+
+        return data
 
     @tracer.capture_method
     def retrieve_all_comments(self, video_id: str, api_key: str) -> list[dict]:
@@ -177,9 +185,9 @@ class YouTubeCommentsProcessor:
             for idx, sentiment in enumerate(response["ResultList"]):
                 comments[i + idx] |= {
                     "sentiment": sentiment["Sentiment"],
-                    "sentimentScorePositive": sentiment["SentimentScore"]["Positive"],
-                    "sentimentScoreNegative": sentiment["SentimentScore"]["Negative"],
-                    "sentimentScoreNeutral": sentiment["SentimentScore"]["Neutral"],
+                    "sentiment_score_positive": sentiment["SentimentScore"]["Positive"],
+                    "sentiment_score_negative": sentiment["SentimentScore"]["Negative"],
+                    "sentiment_score_neutral": sentiment["SentimentScore"]["Neutral"],
                 }
 
                 logger.debug(
