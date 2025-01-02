@@ -107,19 +107,19 @@ Resources:
             - Name: sentiment
               Type: string
             - Name: sentimentScorePositive
-              Type: double
+              Type: float
             - Name: sentimentScoreNegative
-              Type: double
+              Type: float
             - Name: sentimentScoreNeutral
-              Type: double
+              Type: float
           Location: !Sub s3://${S3Bucket}/data/
-          InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+          InputFormat: "org.apache.hadoop.mapred.TextInputFormat"
+          OutputFormat: "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
         Parameters:
           classification: json
-          typeOfData: file
+          has_encrypted_data: "false"
 
   AppRegistry:
     Type: AWS::ServiceCatalogAppRegistry::Application
