@@ -34,12 +34,12 @@ Resources:
           POWERTOOLS_SERVICE_NAME: ProdYoutubeCommentSentimentAnalysis
           POWERTOOLS_METRICS_NAMESPACE: ProdYoutubeCommentSentimentAnalysis
           LOG_LEVEL: INFO
-          BUCKET_NAME: !Ref YoutubeCommentSentimentAnalysisBucket
+          BUCKET_NAME: !Ref S3Bucket
           ENVIROMENT: !Ref Env
       Policies: 
         - ComprehendBasicAccessPolicy: {}
         - S3WritePolicy:
-            BucketName: !Ref YoutubeCommentSentimentAnalysisBucket
+            BucketName: !Ref S3Bucket
         - AWSSecretsManagerGetSecretValuePolicy:
             SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:test/YoutubeSentimentAnalysis-CVq1ik
       Tags:
@@ -111,7 +111,7 @@ Resources:
               Type: double
             - Name: sentimentScoreNeutral
               Type: double
-          Location: !Sub s3://${YoutubeCommentSentimentAnalysisBucket}/data/
+          Location: !Sub s3://${S3Bucket}/data/
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
           OutputFormat: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
           SerdeInfo:

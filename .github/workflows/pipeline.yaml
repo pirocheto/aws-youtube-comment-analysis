@@ -44,16 +44,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Cache SAM build artifacts
-      - name: Cache SAM build artifacts
-        id: cache-sam-build
-        uses: actions/cache@v3
-        with:
-          path: .aws-sam/build
-          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml', 'src/**/*', 'samconfig.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-sam-build-
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -66,6 +56,19 @@ jobs:
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
+
+      - name: Validate SAM Template
+        run: sam validate --config-env ${{ env.ENVIRONMENT }}
+
+      # Cache SAM build artifacts
+      - name: Cache SAM build artifacts
+        id: cache-sam-build
+        uses: actions/cache@v3
+        with:
+          path: .aws-sam/build
+          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml', 'src/**/*', 'samconfig.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-sam-build-
 
       # Build inside Docker containers
       - name: Build SAM Application
