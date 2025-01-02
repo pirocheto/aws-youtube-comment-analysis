@@ -123,4 +123,4 @@ Outputs:
     Value: !Ref GlueDatabase
   YoutubeCommentSentimentAnalysisGlueAnalyticsTableName:
     Description: "Name of the Glue Table"
-    Value: !GetAtt GlueTable.TableInput.Name
+    Value: !Ref GlueTable
