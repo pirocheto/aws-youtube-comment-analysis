@@ -1,3 +1,52 @@
 {
-  "video_id": "Ps5kScYvQQk"
+  "Records": [
+    {
+      "eventID": "1",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "eu-west-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1640995200,
+        "Keys": {
+          "video_id": {
+            "S": "xyz456"
+          }
+        },
+        "NewImage": {
+          "video_id": {
+            "S": "xyz456"
+          }
+        },
+        "SequenceNumber": "1234567890",
+        "SizeBytes": 128,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/test-youtube-comments/stream/2022-01-01T00:00:00.000"
+    },
+    {
+      "eventID": "2",
+      "eventName": "REMOVE",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "eu-west-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1640995400,
+        "Keys": {
+          "video_id": {
+            "S": "xyz456"
+          }
+        },
+        "OldImage": {
+          "video_id": {
+            "S": "xyz456"
+          }
+        },
+        "SequenceNumber": "1234567892",
+        "SizeBytes": 128,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/test-youtube-comments/stream/2022-01-01T00:00:00.000"
+    }
+  ]
 }

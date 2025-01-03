@@ -10,51 +10,150 @@ Diagram:
     AWSCloud:
       Type: AWS::Diagram::Cloud
       Preset: AWSCloudNoLogo
+      Direction: horizontal
       Children:
-        - Lambda
-        - S3Bucket
-        - DataCatalog
-        - Athena
+        - Users
+        - VerticalGroup
 
-    
-    Lambda:
+    Users:
+      Type: AWS::IAM::User
+      Title: Data Analyst
+      Preset: Users
+
+    # Request Group ---------
+    Stepfunctions:
+      Type: AWS::StepFunctions
+      Title: Request management
+    RetrieveYoutubeCommentsLambda:
       Type: AWS::Lambda
-      Title: test-youtube-comment-sentiment-analysis
-
+      Title: Retrieve Comments
+    DeleteYoutubeCommentsLambda:
+      Type: AWS::Lambda
+      Title: Delete Comments
+    DynamoDB:
+      Type: AWS::DynamoDB
+      Title: Request storage
+    Events:
+      Type: AWS::Events
+      Title: DynamoDB Stream
+    LambdaGroup:
+      Type: AWS::Diagram::VerticalStack
+      Children:
+        - RetrieveYoutubeCommentsLambda
+        - DeleteYoutubeCommentsLambda
     S3Bucket:
       Type: AWS::S3::Bucket
-      Title: test-youtube-comment-sentiment-analysis
+      Title: Comment storage
+    RequestGroup:
+      Type: AWS::Diagram::HorizontalStack
+      Children:
+        - Stepfunctions
+        - DynamoDB
+        - Events
+        - LambdaGroup
+        - S3Bucket
+    # -----------------------------
 
-    DataCatalog:
+
+    # Analytic group --------------
+    GlueCatalog:
       Type: AWS::Glue
       Preset: AWS Glue Data Catalog
-      Title: test_youtube_comments_analytics
-
+      Title: Data Catalog
     Athena:
       Type: AWS::Athena
-      Title: test_youtube_comments_analytics
-    
+      Title: Analytic Engine
+    AnalyticGroup:
+      Type: AWS::Diagram::HorizontalStack
+      Children:
+        - Athena
+        - GlueCatalog
+        - GlueTable
+    # -----------------------------
+
+    VerticalGroup:
+      Type: AWS::Diagram::VerticalStack
+      Children:
+        - RequestGroup
+        - AnalyticGroup
+
+
 
 
   Links:
-    - Source: Lambda
+    - Source: Users
+      SourcePosition: E
+      Target: Stepfunctions
+      TargetPosition: W
+      TargetArrowHead:
+        Type: Default
+
+    - Source: DynamoDB
+      SourcePosition: E
+      Target: Events
+      TargetPosition: W
+      TargetArrowHead:
+        Type: Default
+      # Type: orthogonal
+
+    - Source: Stepfunctions
+      SourcePosition: E
+      Target: DynamoDB
+      TargetPosition: W
+      TargetArrowHead:
+        Type: Default
+
+    - Source: Events
+      SourcePosition: E
+      Target: RetrieveYoutubeCommentsLambda
+      TargetPosition: W
+      TargetArrowHead:
+        Type: Default
+      # Type: orthogonal
+
+    - Source: Events
+      SourcePosition: E
+      Target: DeleteYoutubeCommentsLambda
+      TargetPosition: W
+      TargetArrowHead:
+        Type: Default
+      # Type: orthogonal
+
+    - Source: RetrieveYoutubeCommentsLambda
       SourcePosition: E
       Target: S3Bucket
       TargetPosition: W
       TargetArrowHead:
         Type: Default
+      # Type: orthogonal
 
-    - Source: DataCatalog
-      SourcePosition: W
+    - Source: DeleteYoutubeCommentsLambda
+      SourcePosition: E
       Target: S3Bucket
-      TargetPosition: E
+      TargetPosition: W
+      TargetArrowHead:
+        Type: Default
+      # Type: orthogonal
+
+
+    - Source: Users
+      SourcePosition: E
+      Target: Athena
+      TargetPosition: W
       TargetArrowHead:
         Type: Default
 
     - Source: Athena
-      SourcePosition: W
-      Target: DataCatalog
-      TargetPosition: E
+      SourcePosition: E
+      Target: GlueCatalog
+      TargetPosition: W
       TargetArrowHead:
         Type: Default
         
+    - Source: GlueCatalog
+      SourcePosition: E
+      Target: S3Bucket
+      TargetPosition: S
+      TargetArrowHead:
+        Type: Default
+      Type: orthogonal

@@ -7,24 +7,35 @@ import inflection
 import requests
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
+from aws_lambda_powertools.utilities.batch import (
+    BatchProcessor,
+    EventType,
+    process_partial_response,
+)
+from aws_lambda_powertools.utilities.data_classes.dynamo_db_stream_event import (
+    DynamoDBRecord,
+    DynamoDBStreamEvent,
+)
 from aws_lambda_powertools.utilities.parser import event_parser
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from pydantic import BaseModel
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
+DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 AWS_REGION = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION"))
 ENVIRONMENT = os.getenv("ENVIRONMENT", "test")
 YOUTUBE_API_URL = "https://youtube.googleapis.com/youtube/v3/commentThreads"
 
+processor = BatchProcessor(event_type=EventType.DynamoDBStreams)
 tracer = Tracer()
 logger = Logger()
 metrics = Metrics()
 
 s3 = boto3.client("s3", region_name=AWS_REGION)
 comprehend = boto3.client("comprehend", region_name=AWS_REGION)
+dynamodb = boto3.client("dynamodb", region_name=AWS_REGION)
 
 
-class YouTubeCommentsProcessor:
+class YouTubeCommentsHandler:
     @tracer.capture_method
     def fetch_comments_page(
         self,
@@ -83,12 +94,13 @@ class YouTubeCommentsProcessor:
             **snippet_snake_case,
             "author_channel_id": author_channel_id,
             "parent_id": comment_data.get("parentId", "none"),
+            "fetched_at": datetime.now().isoformat(),
         }
 
         return data
 
     @tracer.capture_method
-    def retrieve_all_comments(self, video_id: str, api_key: str) -> list[dict]:
+    def retrieve_comments_from_youtube(self, video_id: str, api_key: str) -> list[dict]:
         """Retrieve all comments for a given video."""
 
         comments = []
@@ -146,8 +158,7 @@ class YouTubeCommentsProcessor:
     def upload_comments_to_s3(self, comments: list[dict], video_id: str) -> str:
         """Upload comments to an S3 bucket and return the S3 key."""
 
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S.%f")
-        s3_key = f"data/{video_id}-{timestamp}.json"
+        s3_key = f"data/{video_id}.json"
         body = "\n".join([json.dumps(comment) for comment in comments])
 
         s3.put_object(
@@ -159,6 +170,29 @@ class YouTubeCommentsProcessor:
         )
 
         return s3_key
+
+    @tracer.capture_method
+    def retrieve_comments_from_s3(self, video_id: str) -> list[dict]:
+        """Retrieve comments from S3."""
+
+        response = s3.get_object(
+            Bucket=BUCKET_NAME,
+            Key=f"data/{video_id}.json",
+        )
+        comments = [
+            json.loads(comment)
+            for comment in response["Body"].read().decode("utf-8").split("\n")
+        ]
+
+        return comments
+
+    @tracer.capture_method
+    def remove_comments_from_s3(self, video_id: str):
+        """Delete comments for a given video."""
+
+        # Delete comments from S3
+        s3.delete_object(Bucket=BUCKET_NAME, Key=f"data/{video_id}.json")
+        logger.info({"message": "Deleted comments from S3", "video_id": video_id})
 
     @tracer.capture_method
     def batch_detect_sentiment(
@@ -200,43 +234,128 @@ class YouTubeCommentsProcessor:
         return comments
 
 
-processor = YouTubeCommentsProcessor()
+handler = YouTubeCommentsHandler()
 
 
-class Event(BaseModel):
-    video_id: str
+@tracer.capture_method
+def record_handler(record: DynamoDBRecord):
+    """Process a single DynamoDB stream record."""
+
+    # Retrieve video ID from the event
+    video_id = record.dynamodb["Keys"]["video_id"]["S"]
+
+    if record.event_name == "INSERT":
+        dynamodb.update_item(
+            TableName=DYNAMODB_TABLE_NAME,
+            Key={"video_id": {"S": video_id}},
+            UpdateExpression="SET #status = :status",
+            ExpressionAttributeNames={"#status": "status"},
+            ExpressionAttributeValues={":status": {"S": "INSERTION_IN_PROGRESS"}},
+        )
+
+        try:
+            # Initialize the processor with the API key
+            secret_name = f"{ENVIRONMENT}/YoutubeSentimentAnalysis"
+            api_key = parameters.get_secret(secret_name)
+
+            # Retrieve and process comments
+            comments = handler.retrieve_comments_from_youtube(video_id, api_key)
+
+            # Batch detect sentiment
+            comments_with_sentiment = handler.batch_detect_sentiment(comments)
+
+            # Upload comments to S3
+            s3_key = handler.upload_comments_to_s3(comments_with_sentiment, video_id)
+
+        except Exception as error:
+            logger.exception(
+                {"message": "Failed to process comments", "error": str(error)}
+            )
+
+            # Update the DynamoDB item with the error message
+            dynamodb.update_item(
+                TableName=DYNAMODB_TABLE_NAME,
+                Key={"video_id": {"S": video_id}},
+                UpdateExpression="SET #status = :status, #error_message = :error_message, #completed_at = :completed_at",
+                ExpressionAttributeNames={
+                    "#status": "status",
+                    "#error_message": "error_message",
+                    "#completed_at": "completed_at",
+                },
+                ExpressionAttributeValues={
+                    ":status": {"S": "INSERTION_FAILED"},
+                    ":error_message": {"S": str(error)},
+                    ":completed_at": {"S": datetime.now().isoformat()},
+                },
+            )
+
+            raise error
+
+        dynamodb.update_item(
+            TableName=DYNAMODB_TABLE_NAME,
+            Key={"video_id": {"S": video_id}},
+            UpdateExpression="SET #status = :status, #result_file_url = :result_file_url, #total_comments = :total_comments, #completed_at = :completed_at",
+            ExpressionAttributeNames={
+                "#status": "status",
+                "#result_file_url": "result_file_url",
+                "#total_comments": "total_comments",
+                "#completed_at": "completed_at",
+            },
+            ExpressionAttributeValues={
+                ":status": {"S": "INSERTION_COMPLETED"},
+                ":result_file_url": {"S": f"s3://{BUCKET_NAME}/{s3_key}"},
+                ":total_comments": {"N": str(len(comments_with_sentiment))},
+                ":completed_at": {"S": datetime.now().isoformat()},
+            },
+        )
+
+        # Build and return the response
+        return {
+            "action": record.event_name,
+            "video_id": video_id,
+            "total_comments": len(comments_with_sentiment),
+            "output": {
+                "bucket_name": BUCKET_NAME,
+                "bucket_key": s3_key,
+                "s3_uri": f"s3://{BUCKET_NAME}/{s3_key}",
+            },
+        }
+
+    if record.event_name == "REMOVE":
+        # Retrieve and process comments
+        comments = handler.retrieve_comments_from_s3(video_id)
+
+        # Delete comments from S3
+        handler.remove_comments_from_s3(video_id)
+
+        logger.info(
+            {
+                "message": "Deleted comments from S3",
+                "video_id": video_id,
+                "total_comments": len(comments),
+            }
+        )
+
+        # Build and return the response
+        return {
+            "action": record.event_name,
+            "video_id": video_id,
+            "total_comments": len(comments),
+        }
+
+    raise ValueError(f"Unsupported event name: {record.event_name}")
 
 
-@event_parser(model=Event)
+@event_parser(model=DynamoDBStreamEvent)
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context
 @metrics.log_metrics(capture_cold_start_metric=True)
-def lambda_handler(event: Event, context: LambdaContext) -> dict:
+def lambda_handler(event: DynamoDBStreamEvent, context: LambdaContext) -> dict:
     """AWS Lambda handler for processing video comments."""
 
-    # Retrieve video ID from the event
-    video_id = event.video_id
-
-    # Initialize the processor with the API key
-    secret_name = f"{ENVIRONMENT}/YoutubeSentimentAnalysis"
-    api_key = parameters.get_secret(secret_name)
-
-    # Retrieve and process comments
-    comments = processor.retrieve_all_comments(video_id, api_key)
-
-    # Batch detect sentiment
-    comments_with_sentiment = processor.batch_detect_sentiment(comments)
-
-    # Upload comments to S3
-    s3_key = processor.upload_comments_to_s3(comments_with_sentiment, video_id)
-
-    # Build and return the response
-    return {
-        "video_id": video_id,
-        "total_comments": len(comments_with_sentiment),
-        "output": {
-            "bucket_name": BUCKET_NAME,
-            "bucket_key": s3_key,
-            "s3_uri": f"s3://{BUCKET_NAME}/{s3_key}",
-        },
-    }
+    return process_partial_response(
+        event=event,
+        record_handler=record_handler,
+        processor=processor,
+        context=context,
+    )

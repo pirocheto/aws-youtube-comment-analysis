@@ -43,7 +43,6 @@ Resources:
       Tags:
         Service: !Ref AWS::StackName
         Env: !Ref Env
-        awsApplication: !GetAtt AppRegistry.ApplicationTagValue
 
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -54,8 +53,6 @@ Resources:
           Value: !Ref AWS::StackName
         - Key: Env
           Value: !Ref Env
-        - Key: awsApplication
-          Value: !GetAtt AppRegistry.ApplicationTagValue
 
   GlueDatabase:
     Type: AWS::Glue::Database
@@ -104,6 +101,8 @@ Resources:
               Type: timestamp
             - Name: parent_id
               Type: string
+            - Name: fetched_at
+              Type: timestamp
             - Name: sentiment
               Type: string
             - Name: sentiment_score_positive
@@ -121,6 +120,26 @@ Resources:
         Parameters:
           classification: json
           has_encrypted_data: "false"
+
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${Env}_youtube_comment_requests
+      AttributeDefinitions:
+        - AttributeName: video_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: video_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        Enabled: true
+        AttributeName: ExpiryDate
+      Tags:
+        - Key: Service
+          Value: !Ref AWS::StackName
+        - Key: Env
+          Value: !Ref Env
 
   AppRegistry:
     Type: AWS::ServiceCatalogAppRegistry::Application
@@ -147,8 +166,11 @@ Outputs:
     Description: "Youtube Comment Sentiment Analysis Bucket ARN"
     Value: !GetAtt S3Bucket.Arn
   YoutubeCommentSentimentAnalysisGlueDatabaseName:
-    Description: "Name of the Glue Database"
+    Description: "Youtube Comment Sentiment Analysis Glue Database Name"
     Value: !Ref GlueDatabase
   YoutubeCommentSentimentAnalysisGlueAnalyticsTableName:
-    Description: "Name of the Glue Table"
+    Description: "Youtube Comment Sentiment Analysis Glue Table Name"
     Value: !Ref GlueTable
+  YoutubeCommentSentimentAnalysisDynamoDBTableName:
+    Description: "Youtube Comment Sentiment Analysis DynamoDB Table Name"
+    Value: !Ref DynamoDBTable
