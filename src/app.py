@@ -6,7 +6,6 @@ from itertools import batched
 import boto3
 import inflection
 import requests
-from 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
 from aws_lambda_powertools.utilities.batch import (
