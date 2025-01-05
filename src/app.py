@@ -15,9 +15,7 @@ from aws_lambda_powertools.utilities.batch import (
 )
 from aws_lambda_powertools.utilities.data_classes.dynamo_db_stream_event import (
     DynamoDBRecord,
-    DynamoDBStreamEvent,
 )
-from aws_lambda_powertools.utilities.parser import event_parser
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
@@ -342,11 +340,10 @@ def record_handler(record: DynamoDBRecord):
     raise ValueError(f"Unsupported event name: {record.event_name}")
 
 
-@event_parser(model=DynamoDBStreamEvent)
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context
 @metrics.log_metrics(capture_cold_start_metric=True)
-def lambda_handler(event: DynamoDBStreamEvent, context: LambdaContext) -> dict:
+def lambda_handler(event, context: LambdaContext) -> dict:
     """AWS Lambda handler for processing video comments."""
 
     return process_partial_response(
