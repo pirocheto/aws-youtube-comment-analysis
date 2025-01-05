@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from itertools import batched
 
 import boto3
 import inflection
@@ -200,14 +201,11 @@ class YouTubeCommentsHandler:
     ) -> list[dict]:
         """Detect sentiment for a batch of comments."""
 
-        for i in range(0, len(comments), batch_size):
-            batch = comments[i : i + batch_size]
-
+        for batch in batched(comments, batch_size):
             logger.info(
                 {
                     "message": "Detecting sentiment for batch",
                     "batch_size": len(batch),
-                    "items_range": f"{i+1} - {i+len(batch)}",
                 }
             )
 
@@ -217,7 +215,7 @@ class YouTubeCommentsHandler:
             )
 
             for idx, sentiment in enumerate(response["ResultList"]):
-                comments[i + idx] |= {
+                batch[idx] |= {
                     "sentiment": sentiment["Sentiment"],
                     "sentiment_score_positive": sentiment["SentimentScore"]["Positive"],
                     "sentiment_score_negative": sentiment["SentimentScore"]["Negative"],
@@ -227,11 +225,9 @@ class YouTubeCommentsHandler:
                 logger.debug(
                     {
                         "message": "Processed sentiment",
-                        "comment": comments[i + idx],
+                        "comment": batch[idx],
                     }
                 )
-
-        return comments
 
 
 handler = YouTubeCommentsHandler()
