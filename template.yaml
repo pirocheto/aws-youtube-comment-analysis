@@ -25,7 +25,7 @@ Resources:
       Architectures:
         - x86_64
       Runtime: python3.12
-      Timeout: 30
+      Timeout: 300
       Tracing: Active
       Environment:
         Variables:
