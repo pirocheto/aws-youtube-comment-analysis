@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from enum import Enum
 from itertools import batched
 
 import boto3
@@ -169,16 +170,11 @@ class YouTubeCommentsHandler:
             ContentEncoding="utf8",
         )
 
-        return s3_key
-
     @tracer.capture_method
     def retrieve_comments_from_s3(self, video_id: str) -> list[dict]:
         """Retrieve comments from S3."""
 
-        response = s3.get_object(
-            Bucket=BUCKET_NAME,
-            Key=f"data/{video_id}.json",
-        )
+        response = s3.get_object(Bucket=BUCKET_NAME, Key=f"data/{video_id}.json")
         comments = [
             json.loads(comment)
             for comment in response["Body"].read().decode("utf-8").split("\n")
@@ -230,6 +226,12 @@ class YouTubeCommentsHandler:
         return comments_with_sentiment
 
 
+class ActionName(Enum, str):
+    INSERT = "INSERT"
+    REMOVE = "REMOVE"
+    UPDATE = "UPDATE"
+
+
 handler = YouTubeCommentsHandler()
 
 
@@ -237,109 +239,131 @@ handler = YouTubeCommentsHandler()
 def record_handler(record: DynamoDBRecord):
     """Process a single DynamoDB stream record."""
 
-    # Retrieve video ID from the event
+    # Retrieve record data
     video_id = record.dynamodb["Keys"]["video_id"]["S"]
+    event_id = record.dynamodb["Keys"]["event_id"]["S"]
+    action_name = record.dynamodb["Keys"]["action"]["S"]
 
     if record.event_name == DynamoDBRecordEventName.INSERT:
-        dynamodb.update_item(
-            TableName=DYNAMODB_TABLE_NAME,
-            Key={"video_id": {"S": video_id}},
-            UpdateExpression="SET #status = :status",
-            ExpressionAttributeNames={"#status": "status"},
-            ExpressionAttributeValues={":status": {"S": "INSERTION_IN_PROGRESS"}},
-        )
+        match action_name:
+            case ActionName.INSERT:
+                # Update item for processing
+                dynamodb.update_item(
+                    TableName=DYNAMODB_TABLE_NAME,
+                    Key={
+                        "video_id": {"S": video_id},
+                        "event_id": {"S": str(event_id)},
+                    },
+                    UpdateExpression="SET #status = :status, #started_at = :started_at",
+                    ExpressionAttributeNames={
+                        "#status": "status",
+                        "#started_at": "started_at",
+                    },
+                    ExpressionAttributeValues={
+                        ":action": {"S": ActionName.INSERT},
+                        ":status": {"S": "INSERTION_IN_PROGRESS"},
+                        ":started_at": {"S": datetime.now().isoformat()},
+                    },
+                )
 
-        try:
-            # Initialize the processor with the API key
-            secret_name = f"{ENVIRONMENT}/YoutubeSentimentAnalysis"
-            api_key = parameters.get_secret(secret_name)
+                try:
+                    # Initialize the processor with the API key
+                    secret_name = f"{ENVIRONMENT}/YoutubeSentimentAnalysis"
+                    api_key = parameters.get_secret(secret_name)
 
-            # Retrieve and process comments
-            comments = handler.retrieve_comments_from_youtube(video_id, api_key)
+                    # Retrieve and process comments
+                    comments = handler.retrieve_comments_from_youtube(video_id, api_key)
 
-            # Batch detect sentiment
-            comments_with_sentiment = handler.batch_detect_sentiment(comments)
+                    # Batch detect sentiment
+                    comments_with_sentiment = handler.batch_detect_sentiment(comments)
 
-            # Upload comments to S3
-            s3_key = handler.upload_comments_to_s3(comments_with_sentiment, video_id)
+                    # Upload comments to S3
+                    handler.upload_comments_to_s3(comments_with_sentiment, video_id)
 
-        except Exception as error:
-            logger.exception(
-                {"message": "Failed to process comments", "error": str(error)}
-            )
+                except Exception as error:
+                    logger.exception(
+                        {"message": "Failed to process comments", "error": str(error)}
+                    )
 
-            # Update the DynamoDB item with the error message
-            dynamodb.update_item(
-                TableName=DYNAMODB_TABLE_NAME,
-                Key={"video_id": {"S": video_id}},
-                UpdateExpression="SET #status = :status, #error_message = :error_message, #completed_at = :completed_at",
-                ExpressionAttributeNames={
-                    "#status": "status",
-                    "#error_message": "error_message",
-                    "#completed_at": "completed_at",
-                },
-                ExpressionAttributeValues={
-                    ":status": {"S": "INSERTION_FAILED"},
-                    ":error_message": {"S": str(error)},
-                    ":completed_at": {"S": datetime.now().isoformat()},
-                },
-            )
+                    # Update item for failed completion
+                    dynamodb.update_item(
+                        TableName=DYNAMODB_TABLE_NAME,
+                        Key={
+                            "video_id": {"S": video_id},
+                            "event_id": {"S": str(event_id)},
+                        },
+                        UpdateExpression="SET #status = :status, #error_message = :error_message, #completed_at = :completed_at",
+                        ExpressionAttributeNames={
+                            "#status": "status",
+                            "#error_message": "error_message",
+                            "#completed_at": "completed_at",
+                        },
+                        ExpressionAttributeValues={
+                            ":status": {"S": "INSERTION_FAILED"},
+                            ":error_message": {"S": str(error)},
+                            ":completed_at": {"S": datetime.now().isoformat()},
+                        },
+                    )
 
-            raise error
+                    raise error
 
-        dynamodb.update_item(
-            TableName=DYNAMODB_TABLE_NAME,
-            Key={"video_id": {"S": video_id}},
-            UpdateExpression="SET #status = :status, #result_file_url = :result_file_url, #total_comments = :total_comments, #completed_at = :completed_at",
-            ExpressionAttributeNames={
-                "#status": "status",
-                "#result_file_url": "result_file_url",
-                "#total_comments": "total_comments",
-                "#completed_at": "completed_at",
-            },
-            ExpressionAttributeValues={
-                ":status": {"S": "INSERTION_COMPLETED"},
-                ":result_file_url": {"S": f"s3://{BUCKET_NAME}/{s3_key}"},
-                ":total_comments": {"N": str(len(comments_with_sentiment))},
-                ":completed_at": {"S": datetime.now().isoformat()},
-            },
-        )
+                # Update item for successful completion
+                dynamodb.update_item(
+                    TableName=DYNAMODB_TABLE_NAME,
+                    Key={
+                        "video_id": {"S": video_id},
+                        "event_id": {"S": str(event_id)},
+                    },
+                    UpdateExpression="SET #status = :status, #s3_uri = :s3_uri, #completed_at = :completed_at",
+                    ExpressionAttributeNames={
+                        "#status": "status",
+                        "#s3_uri": "s3_uri",
+                        "#completed_at": "completed_at",
+                    },
+                    ExpressionAttributeValues={
+                        ":status": {"S": "INSERTION_COMPLETED"},
+                        ":s3_uri": {"S": f"s3://{BUCKET_NAME}/data/{video_id}.json"},
+                        ":completed_at": {"S": datetime.now().isoformat()},
+                    },
+                )
 
-        # Build and return the response
-        return {
-            "action": record.event_name,
-            "video_id": video_id,
-            "total_comments": len(comments_with_sentiment),
-            "output": {
-                "bucket_name": BUCKET_NAME,
-                "bucket_key": s3_key,
-                "s3_uri": f"s3://{BUCKET_NAME}/{s3_key}",
-            },
-        }
+                return {
+                    "action": record.event_name,
+                    "video_id": video_id,
+                    "s3_uri": f"s3://{BUCKET_NAME}/data/{video_id}.json",
+                }
 
-    if record.event_name == DynamoDBRecordEventName.REMOVE:
-        # Retrieve and process comments
-        comments = handler.retrieve_comments_from_s3(video_id)
+            case ActionName.REMOVE:
+                # Update item for processing
+                dynamodb.update_item(
+                    TableName=DYNAMODB_TABLE_NAME,
+                    Key={
+                        "video_id": {"S": video_id},
+                        "event_id": {"S": str(event_id)},
+                    },
+                    UpdateExpression="SET #status = :status, #started_at = :started_at, #s3_uri = :s3_uri",
+                    ExpressionAttributeNames={
+                        "#status": "status",
+                        "#started_at": "started_at",
+                        "#s3_uri": "s3_uri",
+                    },
+                    ExpressionAttributeValues={
+                        ":status": {"S": "DELETION_IN_PROGRESS"},
+                        ":started_at": {"S": datetime.now().isoformat()},
+                        ":s3_uri": {"S": f"s3://{BUCKET_NAME}/data/{video_id}.json"},
+                    },
+                )
 
-        # Delete comments from S3
-        handler.remove_comments_from_s3(video_id)
+                # Delete comments from S3
+                handler.remove_comments_from_s3(video_id)
+                logger.info(
+                    {"message": "Deleted comments from S3", "video_id": video_id}
+                )
 
-        logger.info(
-            {
-                "message": "Deleted comments from S3",
-                "video_id": video_id,
-                "total_comments": len(comments),
-            }
-        )
+                return {"action": record.event_name, "video_id": video_id}
 
-        # Build and return the response
-        return {
-            "action": record.event_name,
-            "video_id": video_id,
-            "total_comments": len(comments),
-        }
-
-    raise ValueError(f"Unsupported event name: {record.event_name}")
+            case _:
+                raise ValueError(f"Unsupported action: {action_name}")
 
 
 @tracer.capture_lambda_handler

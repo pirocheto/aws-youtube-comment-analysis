@@ -11,11 +11,17 @@
         "Keys": {
           "video_id": {
             "S": "UE35SXaXG6o"
+          },
+          "event_id": {
+            "S": "1234567890"
+          },
+          "action": {
+            "S": "INSERT"
           }
         },
         "SequenceNumber": "1234567890",
         "SizeBytes": 128,
-        "StreamViewType": "NEW_AND_OLD_IMAGES"
+        "StreamViewType": "KEYS_ONLY"
       },
       "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/test-youtube-comments/stream/2022-01-01T00:00:00.000"
     },
@@ -30,11 +36,17 @@
         "Keys": {
           "video_id": {
             "S": "UE35SXaXG6o"
+          },
+          "event_id": {
+            "S": "1234567891"
+          },
+          "action": {
+            "S": "REMOVE"
           }
         },
         "SequenceNumber": "1234567892",
         "SizeBytes": 128,
-        "StreamViewType": "NEW_AND_OLD_IMAGES"
+        "StreamViewType": "KEYS_ONLY"
       },
       "eventSourceARN": "arn:aws:dynamodb:us-east-1:123456789012:table/test-youtube-comments/stream/2022-01-01T00:00:00.000"
     }
