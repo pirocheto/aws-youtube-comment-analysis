@@ -8,8 +8,9 @@ Description: Youtube comment sentiment analysis service
 Parameters:
   Env:
     Type: String
-    Default: test
+    Default: dev
     AllowedValues:
+      - dev
       - test
       - prod
     Description: Environment to deploy the stack

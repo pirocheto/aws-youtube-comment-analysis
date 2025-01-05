@@ -11,7 +11,7 @@ wheels/
 
 .pytest_cache/
 .aws-sam/
-packaged-template.yaml
+packaged-*
 output.json
 sam-pipeline/
 .vscode/

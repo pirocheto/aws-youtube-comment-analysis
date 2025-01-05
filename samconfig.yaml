@@ -1,5 +1,30 @@
 version: 0.1
 
+dev:
+  global:
+    parameters:
+      stack_name: dev-youtube-comment-sentiment-analysis
+      s3_bucket: dev-sam-cli-artifacts-youtube-comment-sentiment-analysis
+  local_invoke:
+    parameters:
+      template_file: .aws-sam/build/template.yaml
+      event: events/dynamodb_stream_event.json
+  build:
+    parameters:
+      use_container: true
+  package:
+    parameters:
+      template_file: .aws-sam/build/template.yaml
+      output_template_file: packaged-dev-template.yaml
+  deploy:
+    parameters:
+      template_file: packaged-dev-template.yaml
+      disable_rollback: true
+      parameter_overrides: "Env=dev"
+      fail_on_empty_changeset: false
+      capabilities:
+        - CAPABILITY_IAM
+
 test:
   global:
     parameters:
@@ -8,7 +33,7 @@ test:
   local_invoke:
     parameters:
       template_file: .aws-sam/build/template.yaml
-      event: events/event.json
+      event: events/dynamodb_stream_event.json
   build:
     parameters:
       use_container: true
