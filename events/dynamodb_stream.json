@@ -10,12 +10,7 @@
         "ApproximateCreationDateTime": 1640995200,
         "Keys": {
           "video_id": {
-            "S": "xyz456"
-          }
-        },
-        "NewImage": {
-          "video_id": {
-            "S": "xyz456"
+            "S": "UE35SXaXG6o"
           }
         },
         "SequenceNumber": "1234567890",
@@ -34,12 +29,7 @@
         "ApproximateCreationDateTime": 1640995400,
         "Keys": {
           "video_id": {
-            "S": "xyz456"
-          }
-        },
-        "OldImage": {
-          "video_id": {
-            "S": "xyz456"
+            "S": "UE35SXaXG6o"
           }
         },
         "SequenceNumber": "1234567892",
