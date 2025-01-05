@@ -226,7 +226,7 @@ class YouTubeCommentsHandler:
         return comments_with_sentiment
 
 
-class ActionName(Enum, str):
+class ActionName(str, Enum):
     INSERT = "INSERT"
     REMOVE = "REMOVE"
     UPDATE = "UPDATE"
