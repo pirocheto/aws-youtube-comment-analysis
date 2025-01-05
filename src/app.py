@@ -6,6 +6,7 @@ from itertools import batched
 import boto3
 import inflection
 import requests
+from 
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
 from aws_lambda_powertools.utilities.batch import (
@@ -15,6 +16,7 @@ from aws_lambda_powertools.utilities.batch import (
 )
 from aws_lambda_powertools.utilities.data_classes.dynamo_db_stream_event import (
     DynamoDBRecord,
+    DynamoDBRecordEventName,
 )
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
@@ -238,7 +240,7 @@ def record_handler(record: DynamoDBRecord):
     # Retrieve video ID from the event
     video_id = record.dynamodb["Keys"]["video_id"]["S"]
 
-    if record.event_name == "INSERT":
+    if record.event_name == DynamoDBRecordEventName.INSERT:
         dynamodb.update_item(
             TableName=DYNAMODB_TABLE_NAME,
             Key={"video_id": {"S": video_id}},
@@ -315,7 +317,7 @@ def record_handler(record: DynamoDBRecord):
             },
         }
 
-    if record.event_name == "REMOVE":
+    if record.event_name == DynamoDBRecordEventName.REMOVE:
         # Retrieve and process comments
         comments = handler.retrieve_comments_from_s3(video_id)
 
@@ -341,7 +343,7 @@ def record_handler(record: DynamoDBRecord):
 
 
 @tracer.capture_lambda_handler
-@logger.inject_lambda_context
+@logger.inject_lambda_context(log_event=True)
 @metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event, context: LambdaContext) -> dict:
     """AWS Lambda handler for processing video comments."""
