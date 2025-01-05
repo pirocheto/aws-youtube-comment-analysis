@@ -105,6 +105,12 @@ jobs:
           aws lambda invoke \
             --function-name ${{ env.FUNCTION_NAME }} \
             --cli-binary-format raw-in-base64-out \
-            --payload file://events/event.json \
+            --payload file://events/dynamodb_stream.json \
             output.json
+
           cat output.json | jq
+
+          if grep -q '"errorMessage"' output.json; then
+            echo "Error detected in Lambda response"
+            exit 1
+          fi

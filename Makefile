@@ -24,10 +24,10 @@ test:
 	pytest -s .
 
 invoke-local:
-	sam local invoke test-youtube-comment-sentiment-analysis --config-env test- output.json
+	sam local invoke test-youtube-comment-sentiment-analysis --config-env test output.json
 
 invoke:
-	aws lambda invoke --function-name test-youtube-comment-sentiment-analysis --cli-binary-format raw-in-base64-out --payload file://events/event.json output.json
+	aws lambda invoke --function-name test-youtube-comment-sentiment-analysis --cli-binary-format raw-in-base64-out --payload file://events/dynamodb_stream.json output.json
 
 .PHONY: architecture
 architecture:
