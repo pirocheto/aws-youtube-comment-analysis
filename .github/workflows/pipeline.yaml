@@ -98,14 +98,14 @@ jobs:
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
           role-session-name: testing-integration
 
-      - name: Run integration test
+      - name: Run integration test from DynamoDB stream event
         env:
           FUNCTION_NAME: ${{ env.ENVIRONMENT }}-youtube-comment-sentiment-analysis
         run: |
           aws lambda invoke \
             --function-name ${{ env.FUNCTION_NAME }} \
             --cli-binary-format raw-in-base64-out \
-            --payload file://events/dynamodb_stream.json \
+            --payload file://events/dynamodb_stream_event.json \
             output.json
 
           cat output.json | jq
@@ -114,3 +114,11 @@ jobs:
             echo "Error detected in Lambda response"
             exit 1
           fi
+
+      - name: Run integration test from DynamoDB insertion
+        env:
+          TABLE_NAME: ${{ env.ENVIRONMENT }}_youtube_comment_requests
+        run: |
+          aws dynamodb put-item \
+            --table-name ${{ env.TABLE_NAME }} \
+            --item file://items/dynamodb_item.json

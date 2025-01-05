@@ -1,0 +1,11 @@
+{
+  "video_id": {
+    "S": "UE35SXaXG6o"
+  },
+  "event_id": {
+    "S": "1234567891"
+  },
+  "action": {
+    "S": "INSERT"
+  }
+}

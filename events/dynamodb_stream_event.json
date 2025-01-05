@@ -27,7 +27,7 @@
     },
     {
       "eventID": "2",
-      "eventName": "REMOVE",
+      "eventName": "INSERT",
       "eventVersion": "1.1",
       "eventSource": "aws:dynamodb",
       "awsRegion": "eu-west-1",
