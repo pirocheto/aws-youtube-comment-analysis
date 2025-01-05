@@ -200,6 +200,8 @@ class YouTubeCommentsHandler:
     ) -> list[dict]:
         """Detect sentiment for a batch of comments."""
 
+        comments_with_sentiment = []
+
         for batch in batched(comments, batch_size):
             logger.info(
                 {
@@ -214,19 +216,18 @@ class YouTubeCommentsHandler:
             )
 
             for idx, sentiment in enumerate(response["ResultList"]):
-                batch[idx] |= {
+                sentiment = {
                     "sentiment": sentiment["Sentiment"],
                     "sentiment_score_positive": sentiment["SentimentScore"]["Positive"],
                     "sentiment_score_negative": sentiment["SentimentScore"]["Negative"],
                     "sentiment_score_neutral": sentiment["SentimentScore"]["Neutral"],
                 }
 
-                logger.debug(
-                    {
-                        "message": "Processed sentiment",
-                        "comment": batch[idx],
-                    }
-                )
+                comment = {**batch[idx], **sentiment}
+                comments_with_sentiment.append(comment)
+                logger.debug({"message": "Processed sentiment", "comment": comment})
+
+        return comments_with_sentiment
 
 
 handler = YouTubeCommentsHandler()
