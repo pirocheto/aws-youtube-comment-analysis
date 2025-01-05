@@ -242,7 +242,7 @@ def record_handler(record: DynamoDBRecord):
     # Retrieve record data
     video_id = record.dynamodb["Keys"]["video_id"]["S"]
     event_id = record.dynamodb["Keys"]["event_id"]["S"]
-    action_name = record.dynamodb["Keys"]["action"]["S"]
+    action_name = record.dynamodb["NewImage"]["action"]["S"]
 
     if record.event_name == DynamoDBRecordEventName.INSERT:
         match action_name:
