@@ -33,6 +33,7 @@ Resources:
           POWERTOOLS_METRICS_NAMESPACE: ProdYoutubeCommentSentimentAnalysis
           LOG_LEVEL: INFO
           BUCKET_NAME: !Ref S3Bucket
+          DYNAMODB_TABLE_NAME: !Ref DynamoDBTable
           ENVIROMENT: !Ref Env
       Policies: 
         - ComprehendBasicAccessPolicy: {}
