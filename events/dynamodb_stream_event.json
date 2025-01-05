@@ -14,7 +14,9 @@
           },
           "event_id": {
             "S": "1234567890"
-          },
+          }
+        },
+        "NewImage": {
           "action": {
             "S": "INSERT"
           }
@@ -39,9 +41,11 @@
           },
           "event_id": {
             "S": "1234567891"
-          },
+          }
+        },
+        "NewImage": {
           "action": {
-            "S": "REMOVE"
+            "S": "INSERT"
           }
         },
         "SequenceNumber": "1234567892",

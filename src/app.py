@@ -260,7 +260,6 @@ def record_handler(record: DynamoDBRecord):
                         "#started_at": "started_at",
                     },
                     ExpressionAttributeValues={
-                        ":action": {"S": ActionName.INSERT},
                         ":status": {"S": "INSERTION_IN_PROGRESS"},
                         ":started_at": {"S": datetime.now().isoformat()},
                     },
