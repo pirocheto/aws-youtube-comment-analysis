@@ -13,7 +13,7 @@ permissions:
 
 env:
   AWS_REGION: us-east-1
-  TF_VAR_env: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'test' && 'test' }}
+  ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'test' && 'test' }}
 
 jobs:
   unit-test:
@@ -71,6 +71,11 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+
+      - name: Select/Create Terraform Workspace
+        run: |
+          terraform workspace list || echo "Workspace list unavailable"
+          terraform workspace select ${{ env.ENVIRONMENT }} || terraform workspace new ${{ env.ENVIRONMENT }}
 
       - name: Terraform Plan
         run: terraform plan

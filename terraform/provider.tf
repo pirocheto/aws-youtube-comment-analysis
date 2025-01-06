@@ -9,7 +9,7 @@ terraform {
   required_version = ">= 1.3.0"
 
   backend "s3" {
-    bucket = "youtube-comments-terraform-state"
+    bucket = "youtube-comment-analysis-terraform-state"
     key    = "terraform.tfstate"
     region = "us-east-1"
   }
