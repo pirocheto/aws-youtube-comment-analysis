@@ -20,6 +20,10 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     if: github.ref_name == 'test'
+    defaults:
+      run:
+        working-directory: function
+
     steps:
       - uses: actions/checkout@v3
 
@@ -31,6 +35,7 @@ jobs:
       # Install dependencies
       - name: Set up Python
         run: uv python install
+
       - name: Install the project
         run: uv sync --group test
 
@@ -41,8 +46,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: unit-test
+
+    defaults:
+      run:
+        working-directory: terraform
+
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -52,73 +67,14 @@ jobs:
           role-to-assume: arn:aws:iam::639269844451:role/github-actions
           role-session-name: testing-deployment
 
-      - name: Setup SAM
-        uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-      - name: Validate SAM Template
-        run: sam validate --config-env ${{ env.ENVIRONMENT }}
+      - name: Terraform Init
+        run: terraform init
 
-      # Cache SAM build artifacts
-      - name: Cache SAM build artifacts
-        id: cache-sam-build
-        uses: actions/cache@v3
-        with:
-          path: .aws-sam/build
-          key: ${{ runner.os }}-sam-build-${{ hashFiles('template.yaml', 'src/**/*', 'samconfig.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-sam-build-
+      - name: Terraform Plan
+        run: terraform plan
 
-      # Build inside Docker containers
-      - name: Build SAM Application
-        if: ${{ steps.cache-sam-build.outputs.cache-hit != 'true' }}
-        run: sam build --config-env ${{ env.ENVIRONMENT }}
-
-      # Package SAM Application
-      - name: Package SAM Application
-        run: sam package --config-env ${{ env.ENVIRONMENT }}
-
-      # Prevent prompts and failure when the stack is unchanged
-      - name: Deploy SAM Application
-        run: sam deploy --config-env ${{ env.ENVIRONMENT }}
-
-  integration-test:
-    runs-on: ubuntu-latest
-    if: github.ref_name == 'test'
-    needs: deploy
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          audience: sts.amazonaws.com
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: arn:aws:iam::639269844451:role/github-actions
-          role-session-name: testing-integration
-
-      - name: Run integration test from DynamoDB stream event
-        env:
-          FUNCTION_NAME: ${{ env.ENVIRONMENT }}-youtube-comment-sentiment-analysis
-        run: |
-          aws lambda invoke \
-            --function-name ${{ env.FUNCTION_NAME }} \
-            --cli-binary-format raw-in-base64-out \
-            --payload file://events/dynamodb_stream_event.json \
-            output.json
-
-          cat output.json | jq
-
-          if grep -q '"errorMessage"' output.json; then
-            echo "Error detected in Lambda response"
-            exit 1
-          fi
-
-      - name: Run integration test from DynamoDB insertion
-        env:
-          TABLE_NAME: ${{ env.ENVIRONMENT }}_youtube_comment_requests
-        run: |
-          aws dynamodb put-item \
-            --table-name ${{ env.TABLE_NAME }} \
-            --item file://items/dynamodb_item.json
+      - name: Terraform Apply
+        run: terraform apply -auto-approve

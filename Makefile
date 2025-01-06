@@ -3,22 +3,6 @@
 requirements:
 	uv pip compile pyproject.toml -o src/requirements.txt
 
-.PHONY: build
-build:
-	sam build --config-env dev
-
-.PHONY: package
-package:
-	sam package --config-env dev
-
-.PHONY: deploy
-deploy:
-	sam deploy --config-env dev
-
-.PHONY: validate-template
-validate:
-	sam validate --lint --config-env dev
-
 .PHONY: update-stack
 update-stack: validate build package deploy
 
@@ -26,18 +10,28 @@ update-stack: validate build package deploy
 test:
 	pytest -s .
 
-.PHONY: invoke-local
-invoke-local:
-	sam local invoke test-youtube-comment-sentiment-analysis --config-env dev output.json
 
 .PHONY: invoke_lambda
 invoke_lambda:
-	aws lambda invoke --function-name dev-youtube-comment-sentiment-analysis --cli-binary-format raw-in-base64-out --payload file://events/dynamodb_stream_event.json output.json
+	aws lambda invoke --function-name dev-youtube-comment-sentiment-analysis --cli-binary-format raw-in-base64-out --payload file://events/event.json output.json && cat output.json
 
-.PHONY: put_dynamodb_item
-put_dynamodb_item:
-	aws dynamodb put-item --table-name dev_youtube_comment_requests --item file://items/dynamodb_item.json
 
-.PHONY: architecture
-architecture:
-	awsdac architecture/dac.yaml -o architecture/diagram.png
+@PHONY: terraform-init
+terraform-init:
+	terraform -chdir=terraform init
+
+@PHONY: validate
+terraform-validate:
+	terraform -chdir=terraform validate
+
+@PHONY: terraform-plan
+terraform-plan:
+	terraform -chdir=terraform plan
+
+@PHONY: terraform-apply
+terraform-apply:
+	terraform -chdir=terraform apply
+
+@PHONY: terraform-destroy
+terraform-destroy:
+	terraform -chdir=terraform destroy

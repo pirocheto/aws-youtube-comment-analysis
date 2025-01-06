@@ -5,6 +5,7 @@ Transform:
 
 Description: Youtube comment sentiment analysis service
 
+
 Parameters:
   Env:
     Type: String
@@ -30,30 +31,20 @@ Resources:
       Tracing: Active
       Environment:
         Variables:
-          POWERTOOLS_SERVICE_NAME: ProdYoutubeCommentSentimentAnalysis
-          POWERTOOLS_METRICS_NAMESPACE: ProdYoutubeCommentSentimentAnalysis
+          POWERTOOLS_SERVICE_NAME: !Sub ${Env}YoutubeCommentSentimentAnalysis
+          POWERTOOLS_METRICS_NAMESPACE: !Sub ${Env}YoutubeCommentSentimentAnalysis
           LOG_LEVEL: INFO
           BUCKET_NAME: !Ref S3Bucket
-          DYNAMODB_TABLE_NAME: !Ref DynamoDBTable
           ENVIROMENT: !Ref Env
       Policies: 
         - ComprehendBasicAccessPolicy: {}
         - S3CrudPolicy:
             BucketName: !Ref S3Bucket
-        - DynamoDBCrudPolicy:
-            TableName: !Ref DynamoDBTable
         - AWSSecretsManagerGetSecretValuePolicy:
             SecretArn: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:test/YoutubeSentimentAnalysis-CVq1ik
       Tags:
         Service: !Ref AWS::StackName
         Env: !Ref Env
-      Events:
-        DynamoDBStreamTrigger:
-          Type: DynamoDB
-          Properties:
-            Stream: !GetAtt DynamoDBTable.StreamArn
-            BatchSize: 100
-            StartingPosition: LATEST
 
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -64,6 +55,11 @@ Resources:
           Value: !Ref AWS::StackName
         - Key: Env
           Value: !Ref Env
+
+  S3TableBucket:
+    Type: AWS::S3Tables::TableBucket
+    Properties:
+      TableBucketName: !Sub ${Env}-metastore-youtube-comment-sentiment-analysis
 
   GlueDatabase:
     Type: AWS::Glue::Database
@@ -131,48 +127,6 @@ Resources:
         Parameters:
           classification: json
           has_encrypted_data: "false"
-
-  DynamoDBTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub ${Env}_youtube_comment_requests
-      AttributeDefinitions:
-        - AttributeName: video_id
-          AttributeType: S
-        - AttributeName: event_id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: video_id
-          KeyType: HASH
-        - AttributeName: event_id
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
-      StreamSpecification:
-        StreamViewType: NEW_IMAGE
-      TimeToLiveSpecification:
-        Enabled: true
-        AttributeName: ExpiryDate
-      Tags:
-        - Key: Service
-          Value: !Ref AWS::StackName
-        - Key: Env
-          Value: !Ref Env
-
-  AppRegistry:
-    Type: AWS::ServiceCatalogAppRegistry::Application
-    Properties:
-      Name: !Sub ${Env}-youtube-comment-sentiment-analysis
-      Description: Logical application grouping for Youtube Comment Sentiment Analysis resources
-      Tags:
-        service: !Ref AWS::StackName
-        env: !Ref Env
-
-  AppRegistryAssociation:
-    Type: AWS::ServiceCatalogAppRegistry::ResourceAssociation
-    Properties:
-      Application: !Ref AppRegistry
-      Resource: !Ref AWS::StackId
-      ResourceType: CFN_STACK
   
 
 Outputs:
@@ -188,6 +142,3 @@ Outputs:
   YoutubeCommentSentimentAnalysisGlueAnalyticsTableName:
     Description: "Youtube Comment Sentiment Analysis Glue Table Name"
     Value: !Ref GlueTable
-  YoutubeCommentSentimentAnalysisDynamoDBTableName:
-    Description: "Youtube Comment Sentiment Analysis DynamoDB Table Name"
-    Value: !Ref DynamoDBTable
