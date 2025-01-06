@@ -12,9 +12,8 @@ permissions:
   contents: read # This is required for actions/checkout
 
 env:
-  ENVIRONMENT: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'test' && 'test' }}
   AWS_REGION: eu-west-1
-  SAM_CLI_TELEMETRY: 0
+  TF_VAR_env: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'test' && 'test' }}
 
 jobs:
   unit-test:
