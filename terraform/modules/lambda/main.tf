@@ -1,4 +1,8 @@
 resource "null_resource" "package_lambda" {
+  triggers = {
+    always_run = timestamp()
+  }
+
   provisioner "local-exec" {
     command = <<EOT
         cd ${var.function_dir}
@@ -9,6 +13,10 @@ resource "null_resource" "package_lambda" {
 }
 
 resource "null_resource" "package_lambda_dependencies" {
+  triggers = {
+    always_run = timestamp()
+  }
+
   provisioner "local-exec" {
     command = <<EOT
         cd ${var.function_dir}

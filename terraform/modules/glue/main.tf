@@ -1,10 +1,10 @@
 resource "aws_glue_catalog_database" "database" {
-  name = "${var.env}_youtube_comment"
+  name = var.database_name
 }
 
 resource "aws_glue_catalog_table" "table" {
   database_name = aws_glue_catalog_database.database.name
-  name          = "${var.env}_youtube_comment_analytics"
+  name          = var.table_name
 
   storage_descriptor {
     location = "s3://${var.bucket_name}/data/"
