@@ -10,7 +10,7 @@ terraform {
 
   backend "s3" {
     bucket = "youtube-comments-terraform-state"
-    key    = "${env}-terraform.tfstate"
+    key    = "${var.env}-terraform.tfstate"
     region = "us-east-1"
   }
 }
