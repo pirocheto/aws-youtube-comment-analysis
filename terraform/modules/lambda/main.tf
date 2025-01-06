@@ -1,4 +1,4 @@
-resource "null_resource" "package_lambda" {
+resource "null_resource" "build_lambda" {
   triggers = {
     always_run = timestamp()
   }
@@ -8,18 +8,6 @@ resource "null_resource" "package_lambda" {
         cd ${var.function_dir}
         mkdir -p .build
         cp -r src/* .build/
-    EOT
-  }
-}
-
-resource "null_resource" "package_lambda_dependencies" {
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = <<EOT
-        cd ${var.function_dir}
         uv pip compile pyproject.toml -o .build/requirements.txt
         uv pip install -r .build/requirements.txt --target .build
     EOT
@@ -30,10 +18,7 @@ data "archive_file" "lambda" {
   type        = "zip"
   source_dir  = "${var.function_dir}/.build"
   output_path = "${var.function_dir}/lambda.zip"
-  depends_on = [
-    null_resource.package_lambda,
-    null_resource.package_lambda_dependencies
-  ]
+  depends_on  = [null_resource.build_lambda]
 }
 
 resource "aws_lambda_function" "function" {
@@ -69,4 +54,31 @@ resource "aws_iam_role" "lambda_role" {
       }
     ]
   })
+}
+
+
+resource "aws_iam_policy" "lambda_policy" {
+  name        = "${var.env}-${var.function_name}-policy"
+  description = "Policy for Lambda function"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Effect = "Allow"
+        Resource = [
+          "arn:aws:s3:::${var.bucket_name}",
+          "arn:aws:s3:::${var.bucket_name}/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_policy.arn
 }
