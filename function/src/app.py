@@ -15,9 +15,9 @@ from pydantic import BaseModel
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
 AWS_REGION = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION"))
-ENVIRONMENT = os.getenv("ENVIRONMENT", "test")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
+YOUTUBE_API_KEY_SECRET_NAME = os.getenv("YOUTUBE_API_KEY_SECRET_NAME")
 YOUTUBE_API_URL = "https://youtube.googleapis.com/youtube/v3/commentThreads"
-
 
 tracer = Tracer()
 logger = Logger()
@@ -210,8 +210,7 @@ def lambda_handler(event: Event, context: LambdaContext) -> dict:
         case Action.INSERT:
             try:
                 # Initialize the processor with the API key
-                secret_name = f"{ENVIRONMENT}/YoutubeSentimentAnalysis"
-                api_key = parameters.get_secret(secret_name)
+                api_key = parameters.get_secret(YOUTUBE_API_KEY_SECRET_NAME)
 
                 # Retrieve and process comments
                 comments = handler.retrieve_comments_from_youtube(video_id, api_key)

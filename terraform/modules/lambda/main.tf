@@ -1,35 +1,22 @@
-resource "null_resource" "build_lambda" {
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = <<EOT
-        cd ${var.function_dir}
-        mkdir -p .build
-        cp -r src/* .build/
-        uv pip compile pyproject.toml -o .build/requirements.txt
-        uv pip install -r .build/requirements.txt --target .build
-    EOT
-  }
-}
+data "aws_caller_identity" "current" {}
 
 data "archive_file" "lambda" {
   type        = "zip"
   source_dir  = "${var.function_dir}/.build"
   output_path = "${var.function_dir}/lambda.zip"
-  depends_on  = [null_resource.build_lambda]
 }
 
 resource "aws_lambda_function" "function" {
-  function_name = var.function_name
-  runtime       = "python3.12"
-  handler       = "app.lambda_handler"
-  role          = aws_iam_role.lambda_role.arn
-  filename      = data.archive_file.lambda.output_path
-  timeout       = 300
+  function_name    = var.function_name
+  runtime          = "python3.12"
+  handler          = "app.lambda_handler"
+  role             = aws_iam_role.lambda_role.arn
+  filename         = data.archive_file.lambda.output_path
+  source_code_hash = data.archive_file.lambda.output_base64sha256
+  timeout          = 300
   environment {
     variables = {
+      YOUTUBE_API_KEY_SECRET_NAME  = "${var.env}/YouTubeAPIKey"
       POWERTOOLS_SERVICE_NAME      = "${var.env}${var.service_name}"
       POWERTOOLS_METRICS_NAMESPACE = "${var.env}${var.service_name}"
       LOG_LEVEL                    = "INFO"
@@ -43,7 +30,7 @@ resource "aws_lambda_function" "function" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.env}-${var.function_name}-role"
+  name = "${var.function_name}-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -58,23 +45,32 @@ resource "aws_iam_role" "lambda_role" {
 
 
 resource "aws_iam_policy" "lambda_policy" {
-  name        = "${var.env}-${var.function_name}-policy"
-  description = "Policy for Lambda function"
+  name        = "${var.function_name}-policy"
+  description = "Policy for Lambda function ${var.function_name}"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
+        Effect = "Allow"
         Action = [
           "s3:GetObject",
           "s3:PutObject"
         ]
-        Effect = "Allow"
         Resource = [
           "arn:aws:s3:::${var.bucket_name}",
           "arn:aws:s3:::${var.bucket_name}/*"
         ]
-      }
-    ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = "comprehend:*"
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "secretsmanager:GetSecretValue"
+        Resource = "arn:aws:secretsmanager:eu-west-1:${data.aws_caller_identity.current.account_id}:secret:${var.env}/YouTubeAPIKey-*"
+    }]
   })
 }
 
