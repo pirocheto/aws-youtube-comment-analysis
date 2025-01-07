@@ -90,6 +90,11 @@ resource "aws_glue_catalog_table" "table" {
     }
 
     columns {
+      name = "execution_id"
+      type = "string"
+    }
+
+    columns {
       name = "sentiment"
       type = "string"
     }

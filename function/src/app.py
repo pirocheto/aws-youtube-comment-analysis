@@ -57,31 +57,37 @@ class YouTubeCommentsHandler:
         response.raise_for_status()
         return response.json()
 
-    @staticmethod
-    def format_comment(comment_data: dict) -> dict:
+    @tracer.capture_method
+    def format_comment(
+        self,
+        comment_data: dict,
+        additional_data: dict = {},
+    ) -> dict:
         """Format a single comment for storage."""
-
-        author_channel_id = (
-            comment_data["snippet"].get("authorChannelId", {}).get("value", "none")
-        )
 
         snippet_snake_case = {}
         for key, value in comment_data["snippet"].items():
             new_key = inflection.underscore(key)
             snippet_snake_case[new_key] = value
 
+        author_channel_id = (
+            comment_data["snippet"].get("authorChannelId", {}).get("value", "none")
+        )
+
         data = {
             "id": comment_data["id"],
             **snippet_snake_case,
-            "author_channel_id": author_channel_id,
+            **additional_data,
             "parent_id": comment_data.get("parentId", "none"),
-            "fetched_at": datetime.now().isoformat(),
+            "author_channel_id": author_channel_id,
         }
 
         return data
 
     @tracer.capture_method
-    def retrieve_comments_from_youtube(self, video_id: str, api_key: str) -> list[dict]:
+    def retrieve_comments_from_youtube(
+        self, video_id: str, api_key: str, additional_data: dict = None
+    ) -> list[dict]:
         """Retrieve all comments for a given video."""
 
         comments = []
@@ -95,7 +101,8 @@ class YouTubeCommentsHandler:
             for item in response_data["items"]:
                 # Process top-level comment
                 top_level_comment = self.format_comment(
-                    item["snippet"]["topLevelComment"]
+                    item["snippet"]["topLevelComment"],
+                    additional_data,
                 )
 
                 comments.append(top_level_comment)
@@ -103,8 +110,7 @@ class YouTubeCommentsHandler:
                 # Process replies
                 if "replies" in item:
                     for reply in item["replies"]["comments"]:
-                        reply_comment = self.format_comment(reply)
-
+                        reply_comment = self.format_comment(reply, additional_data)
                         comments.append(reply_comment)
 
             next_page_token = response_data.get("nextPageToken")
@@ -191,6 +197,7 @@ class Action(str, Enum):
 class Event(BaseModel):
     video_id: str
     action: Action
+    execution_id: str
 
 
 handler = YouTubeCommentsHandler()
@@ -205,6 +212,7 @@ def lambda_handler(event: Event, context: LambdaContext) -> dict:
 
     video_id = event.video_id
     action = event.action
+    execution_id = event.execution_id
 
     match action:
         case Action.INSERT:
@@ -213,7 +221,13 @@ def lambda_handler(event: Event, context: LambdaContext) -> dict:
                 api_key = parameters.get_secret(YOUTUBE_API_KEY_SECRET_NAME)
 
                 # Retrieve and process comments
-                comments = handler.retrieve_comments_from_youtube(video_id, api_key)
+                additional_data = {
+                    "execution_id": execution_id,
+                    "fetched_at": datetime.now().isoformat(),
+                }
+                comments = handler.retrieve_comments_from_youtube(
+                    video_id, api_key, additional_data=additional_data
+                )
 
                 # Batch detect sentiment
                 comments_with_sentiment = handler.batch_detect_sentiment(comments)

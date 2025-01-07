@@ -1,3 +1,4 @@
+ENV = dev
 
 .PHONY: test
 test:
@@ -5,7 +6,7 @@ test:
 
 .PHONY: invoke_lambda
 invoke_lambda:
-	aws lambda invoke --function-name dev-youtube-comment-sentiment-analysis --cli-binary-format raw-in-base64-out --payload file://events/event.json output.json && cat output.json
+	aws lambda invoke --function-name ${ENV}-youtube-comment-sentiment-analysis --cli-binary-format raw-in-base64-out --payload file://events/event.json output.json && cat output.json
 
 .ONESHELL:
 .PHONY: build-lambda
@@ -37,6 +38,33 @@ terraform-apply:
 terraform-destroy:
 	terraform -chdir=terraform destroy
 
-.PHONY: dev-workspace
-dev-workspace:
-	terraform -chdir=terraform workspace select dev
+.PHONY: workspace
+workspace:
+	terraform -chdir=terraform workspace select ${ENV}
+
+.PHONY: create-table-bucket
+delete-table-bucket:
+	aws s3tables delete-table \
+		--table-bucket-arn arn:aws:s3tables:us-east-1:639269844451:bucket/${ENV}-youtube-comment-metastore \
+		--namespace aws_s3_metadata \
+		--name dev_youtube_comments_monitoring \
+		--region us-east-1
+		
+	aws s3tables delete-table-bucket \
+		--region us-east-1 \
+		--table-bucket-arn arn:aws:s3tables:us-east-1:639269844451:bucket/${ENV}-youtube-comment-metastore
+
+.PHONY: delete-metadata-table-config
+delete-metadata-table-config:
+	aws s3api delete-bucket-metadata-table-configuration \
+		--bucket ${ENV}-youtube-comment-storage \
+		--region us-east-1
+
+.PHONY: create-metadata-table-config
+create-metadata-table-config:
+	aws s3api create-bucket-metadata-table-configuration \
+		--bucket ${ENV}-youtube-comment-storage \
+		--metadata-table-configuration \
+			"S3TablesDestination={TableBucketArn=arn:aws:s3tables:us-east-1:639269844451:bucket/${ENV}-youtube-comment-metastore,TableName=${ENV}_youtube_comments_monitoring}" \
+		--region us-east-1
+

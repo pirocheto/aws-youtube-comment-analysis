@@ -62,7 +62,7 @@ resource "aws_lambda_function" "function" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.function_name}-role"
+  name = "${var.function_name}-lambda-execution-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -77,7 +77,7 @@ resource "aws_iam_role" "lambda_role" {
 
 
 resource "aws_iam_policy" "lambda_policy" {
-  name        = "${var.function_name}-policy"
+  name        = "${var.function_name}-lambda-execution-policy"
   description = "Policy for Lambda function ${var.function_name}"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -86,7 +86,8 @@ resource "aws_iam_policy" "lambda_policy" {
         Effect = "Allow"
         Action = [
           "s3:GetObject",
-          "s3:PutObject"
+          "s3:PutObject",
+          "s3:DeleteObject"
         ]
         Resource = [
           "arn:aws:s3:::${var.bucket_name}",

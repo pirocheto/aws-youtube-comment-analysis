@@ -1,0 +1,55 @@
+{
+  "Comment": "A Hello World example of the Amazon States Language using an AWS Lambda Function",
+  "StartAt": "Map Videoid",
+  "States": {
+    "Map Videoid": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
+        },
+        "StartAt": "Process Comments",
+        "States": {
+          "Process Comments": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+              "FunctionName": "arn:aws:lambda:us-east-1:639269844451:function:dev-youtube-comment-processor:$LATEST",
+              "Payload": {
+                "video_id.$": "$$.Execution.Input.video_id",
+                "action.$": "$$.Execution.Input.action",
+                "execution_id.$": "$$.Execution.Input.execution_id"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "End": true,
+      "Label": "MapVideoid",
+      "MaxConcurrency": 100,
+      "ItemsPath": "$.video_id",
+      "ItemSelector": {
+        "action.$": "$$.Execution.Input.action",
+        "video_id.$": "$$.Map.Item.Value",
+        "execution_id.$": "$$.Execution.Name"
+      }
+    }
+  }
+}
