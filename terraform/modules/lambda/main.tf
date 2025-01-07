@@ -53,6 +53,10 @@ resource "aws_lambda_function" "function" {
     Env     = var.env
     Service = var.service_name
   }
+
+  depends_on = [
+    data.archive_file.lambda_zip
+  ]
 }
 
 resource "aws_iam_role" "lambda_role" {
