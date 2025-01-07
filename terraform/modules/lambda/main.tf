@@ -18,7 +18,7 @@ resource "null_resource" "build_lambda" {
         uv pip compile pyproject.toml -o .build/requirements.txt
         uv pip install -r .build/requirements.txt --target .build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
         cd .build && rm -rf *.dist-info *.egg-info __pycache__
-        echo "Build completed: $(date)" > .build/build.date
+        echo "Build completed: $(date)" > build.date
     EOF
   }
 }
