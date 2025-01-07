@@ -1,9 +1,35 @@
 data "aws_caller_identity" "current" {}
 
-data "archive_file" "lambda" {
+
+resource "null_resource" "build_lambda" {
+  triggers = {
+    lambda_code_hash = join("", [
+      filesha256("${var.function_dir}/pyproject.toml"),
+      filesha256("${var.function_dir}/src/app.py")
+    ])
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      	cd ${var.function_dir}
+        mkdir -p .build
+        cp -r src/* .build/
+        uv pip compile pyproject.toml -o .build/requirements.txt
+        uv pip install -r .build/requirements.txt --target .build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
+        cd .build && rm -rf *.dist-info *.egg-info __pycache__
+    EOF
+  }
+}
+
+
+data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${var.function_dir}/.build"
   output_path = "${var.function_dir}/lambda.zip"
+
+  depends_on = [
+    null_resource.build_lambda
+  ]
 }
 
 resource "aws_lambda_function" "function" {
@@ -11,8 +37,8 @@ resource "aws_lambda_function" "function" {
   runtime          = "python3.12"
   handler          = "app.lambda_handler"
   role             = aws_iam_role.lambda_role.arn
-  filename         = data.archive_file.lambda.output_path
-  source_code_hash = data.archive_file.lambda.output_base64sha256
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   timeout          = 300
   environment {
     variables = {
