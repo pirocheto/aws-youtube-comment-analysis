@@ -4,6 +4,7 @@ data "aws_caller_identity" "current" {}
 resource "null_resource" "build_lambda" {
   triggers = {
     lambda_code_hash = join("", [
+      fileexists("${var.function_dir}/.build/build.date") ? "exists" : "not_exists",
       filesha256("${var.function_dir}/pyproject.toml"),
       filesha256("${var.function_dir}/src/app.py")
     ])
@@ -17,6 +18,7 @@ resource "null_resource" "build_lambda" {
         uv pip compile pyproject.toml -o .build/requirements.txt
         uv pip install -r .build/requirements.txt --target .build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
         cd .build && rm -rf *.dist-info *.egg-info __pycache__
+        echo "Build completed: $(date)" > .build/build.date
     EOF
   }
 }
