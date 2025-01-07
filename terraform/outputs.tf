@@ -3,9 +3,19 @@ output "lambda_function_arn" {
   value       = module.lambda.function_arn
 }
 
+output "lambda_function_name" {
+  description = "Name of the Lambda function"
+  value       = module.lambda.function_name
+}
+
 output "s3_bucket_arn" {
   description = "ARN of the S3 bucket"
   value       = module.s3.bucket_arn
+}
+
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket"
+  value       = module.s3.bucket_name
 }
 
 output "glue_database_name" {
