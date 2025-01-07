@@ -69,13 +69,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
-        run: terraform init
-
       - name: Select/Create Terraform Workspace
         run: |
           terraform workspace list || echo "Workspace list unavailable"
           terraform workspace select ${{ env.ENVIRONMENT }} || terraform workspace new ${{ env.ENVIRONMENT }}
+
+      - name: Terraform Init
+        run: terraform init
 
       - name: Terraform Plan
         run: terraform plan
