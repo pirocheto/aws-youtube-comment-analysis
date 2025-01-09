@@ -60,11 +60,3 @@ delete-metadata-table-config:
 		--bucket ${ENV}-youtube-comment-storage \
 		--region us-east-1
 
-.PHONY: create-metadata-table-config
-create-metadata-table-config:
-	aws s3api create-bucket-metadata-table-configuration \
-		--bucket ${ENV}-youtube-comment-storage \
-		--metadata-table-configuration \
-			"S3TablesDestination={TableBucketArn=arn:aws:s3tables:us-east-1:639269844451:bucket/${ENV}-youtube-comment-metastore,TableName=${ENV}_youtube_comments_monitoring}" \
-		--region us-east-1
-

@@ -16,7 +16,7 @@
             "Resource": "arn:aws:states:::lambda:invoke",
             "OutputPath": "$.Payload",
             "Parameters": {
-              "FunctionName": "arn:aws:lambda:us-east-1:639269844451:function:dev-youtube-comment-processor:$LATEST",
+              "FunctionName": "${lambda_arn}:$LATEST",
               "Payload": {
                 "video_id.$": "$$.Execution.Input.video_id",
                 "action.$": "$$.Execution.Input.action",
