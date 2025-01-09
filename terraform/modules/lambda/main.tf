@@ -1,6 +1,5 @@
 data "aws_caller_identity" "current" {}
 
-
 resource "null_resource" "build_lambda" {
   triggers = {
     lambda_code_hash = join("", [
@@ -9,7 +8,6 @@ resource "null_resource" "build_lambda" {
       filesha256("${var.function_dir}/src/app.py")
     ])
   }
-
   provisioner "local-exec" {
     command = <<EOF
       	cd ${var.function_dir}
@@ -55,10 +53,6 @@ resource "aws_lambda_function" "function" {
     Env     = var.env
     Service = var.service_name
   }
-
-  depends_on = [
-    data.archive_file.lambda_zip
-  ]
 }
 
 resource "aws_iam_role" "lambda_role" {
