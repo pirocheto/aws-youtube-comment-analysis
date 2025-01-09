@@ -1,1 +1,3 @@
+# Architecture
+
 ![](./img/architecture.png)

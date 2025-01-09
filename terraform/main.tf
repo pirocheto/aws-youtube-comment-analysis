@@ -28,6 +28,6 @@ module "glue" {
 
 module "sfn" {
   source             = "./modules/sfn"
-  state_machine_name = "${local.env}-youtube-comment-processor"
+  state_machine_name = "${local.env}-youtube-comment-requester"
   lambda_arn         = module.lambda.function_arn
 }
