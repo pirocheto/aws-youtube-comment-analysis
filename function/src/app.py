@@ -195,7 +195,7 @@ class YouTubeCommentsHandler:
 
 
 class Action(str, Enum):
-    INSERT = "INSERT"
+    ADD = "ADD"
     REMOVE = "REMOVE"
 
 
@@ -220,7 +220,7 @@ def lambda_handler(event: Event, context: LambdaContext) -> dict:
     execution_id = event.execution_id
 
     match action:
-        case Action.INSERT:
+        case Action.ADD:
             try:
                 # Initialize the processor with the API key
                 api_key = parameters.get_secret(YOUTUBE_API_KEY_SECRET_NAME)
