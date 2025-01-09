@@ -4,7 +4,6 @@ import json
 import os
 from datetime import datetime
 from enum import Enum
-from itertools import batched
 from typing import TYPE_CHECKING
 
 import boto3
@@ -13,10 +12,10 @@ import requests
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.utilities import parameters
 from aws_lambda_powertools.utilities.parser import event_parser
-from aws_lambda_powertools.utilities.typing import LambdaContext
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
+    from aws_lambda_powertools.utilities.typing import LambdaContext
     from types_boto3_comprehend.client import ComprehendClient
     from types_boto3_s3.client import S3Client
 
@@ -43,7 +42,13 @@ class YouTubeCommentsHandler:
         page_token: str = None,
     ) -> dict:
         """Fetch a single page of YouTube comments."""
-
+        logger.info(
+            {
+                "message": "Fetching comments page",
+                "video_id": video_id,
+                "page_token": page_token,
+            }
+        )
         headers = {"Accept": "application/json"}
         params = {
             "part": "snippet,replies",
@@ -60,8 +65,10 @@ class YouTubeCommentsHandler:
             headers=headers,
             timeout=10,
         )
-
         response.raise_for_status()
+        logger.debug(
+            {"message": "YouTube API response received", "response": response.json()}
+        )
         return response.json()
 
     @tracer.capture_method
@@ -71,7 +78,9 @@ class YouTubeCommentsHandler:
         additional_data: dict = {},
     ) -> dict:
         """Format a single comment for storage."""
-
+        logger.debug(
+            {"message": "Formatting comment", "comment_id": comment_data.get("id")}
+        )
         snippet_snake_case = {}
         for key, value in comment_data["snippet"].items():
             new_key = inflection.underscore(key)
@@ -89,6 +98,7 @@ class YouTubeCommentsHandler:
             "author_channel_id": author_channel_id,
         }
 
+        logger.debug({"message": "Comment formatted", "comment_data": data})
         return data
 
     @tracer.capture_method
@@ -96,11 +106,16 @@ class YouTubeCommentsHandler:
         self, video_id: str, api_key: str, additional_data: dict = None
     ) -> list[dict]:
         """Retrieve all comments for a given video."""
-
+        logger.info(
+            {"message": "Retrieving comments from YouTube", "video_id": video_id}
+        )
         comments = []
         next_page_token = None
 
         while True:
+            logger.debug(
+                {"message": "Fetching comments page", "page_token": next_page_token}
+            )
             response_data = self.fetch_comments_page(
                 video_id, page_token=next_page_token, api_key=api_key
             )
@@ -111,7 +126,6 @@ class YouTubeCommentsHandler:
                     item["snippet"]["topLevelComment"],
                     additional_data,
                 )
-
                 comments.append(top_level_comment)
 
                 # Process replies
@@ -122,15 +136,21 @@ class YouTubeCommentsHandler:
 
             next_page_token = response_data.get("nextPageToken")
             if not next_page_token:
+                logger.info(
+                    {
+                        "message": "All comments retrieved",
+                        "video_id": video_id,
+                        "total_comments": len(comments),
+                    }
+                )
                 break
 
-        logger.info({"message": "Retrieved all comments", "video_id": video_id})
         return comments
 
     @tracer.capture_method
     def upload_comments_to_s3(self, comments: list[dict], video_id: str) -> str:
         """Upload comments to an S3 bucket and return the S3 key."""
-
+        logger.info({"message": "Uploading comments to S3", "video_id": video_id})
         s3_key = f"data/{video_id}.json"
         body = "\n".join([json.dumps(comment) for comment in comments])
 
@@ -141,59 +161,21 @@ class YouTubeCommentsHandler:
             ContentType="application/json",
             ContentEncoding="utf8",
         )
-
-    @tracer.capture_method
-    def retrieve_comments_from_s3(self, video_id: str) -> list[dict]:
-        """Retrieve comments from S3."""
-
-        response = s3.get_object(Bucket=BUCKET_NAME, Key=f"data/{video_id}.json")
-        comments = [
-            json.loads(comment)
-            for comment in response["Body"].read().decode("utf-8").split("\n")
-        ]
-
-        logger.info({"message": "Retrieved comments from S3", "video_id": video_id})
-        return comments
+        logger.info(
+            {
+                "message": "Comments uploaded to S3",
+                "bucket_name": BUCKET_NAME,
+                "s3_key": s3_key,
+            }
+        )
+        return s3_key
 
     @tracer.capture_method
     def remove_comments_from_s3(self, video_id: str):
         """Delete comments for a given video."""
-
-        # Delete comments from S3
+        logger.info({"message": "Removing comments from S3", "video_id": video_id})
         s3.delete_object(Bucket=BUCKET_NAME, Key=f"data/{video_id}.json")
         logger.info({"message": "Deleted comments from S3", "video_id": video_id})
-
-    @tracer.capture_method
-    def batch_detect_sentiment(
-        self, comments: list[dict], batch_size: int = 25
-    ) -> list[dict]:
-        """Detect sentiment for a batch of comments."""
-
-        comments_with_sentiment = []
-
-        for batch in batched(comments, batch_size):
-            logger.info(
-                {"message": "Detecting sentiment for batch", "batch_size": len(batch)}
-            )
-
-            response = comprehend.batch_detect_sentiment(
-                TextList=[comment["text_display"] for comment in batch],
-                LanguageCode="fr",
-            )
-
-            for idx, sentiment in enumerate(response["ResultList"]):
-                sentiment = {
-                    "sentiment": sentiment["Sentiment"],
-                    "sentiment_score_positive": sentiment["SentimentScore"]["Positive"],
-                    "sentiment_score_negative": sentiment["SentimentScore"]["Negative"],
-                    "sentiment_score_neutral": sentiment["SentimentScore"]["Neutral"],
-                }
-
-                comment = {**batch[idx], **sentiment}
-                comments_with_sentiment.append(comment)
-                logger.debug({"message": "Processed sentiment", "comment": comment})
-
-        return comments_with_sentiment
 
 
 class Action(str, Enum):
@@ -216,51 +198,39 @@ handler = YouTubeCommentsHandler()
 @metrics.log_metrics(capture_cold_start_metric=True)
 def lambda_handler(event: Event, context: LambdaContext) -> dict:
     """AWS Lambda handler for processing video comments."""
-
+    logger.info(
+        {"message": "Lambda invoked", "event": event.dict(), "environment": ENVIRONMENT}
+    )
     video_id = event.video_id
     action = event.action
     execution_id = event.execution_id
 
     match action:
         case Action.ADD:
-            try:
-                # Initialize the processor with the API key
-                api_key = parameters.get_secret(YOUTUBE_API_KEY_SECRET_NAME)
+            logger.info({"message": "Processing ADD action", "video_id": video_id})
+            api_key = parameters.get_secret(YOUTUBE_API_KEY_SECRET_NAME)
 
-                # Retrieve and process comments
-                additional_data = {
-                    "execution_id": execution_id,
-                    "fetched_at": datetime.now().isoformat(),
-                }
-                comments = handler.retrieve_comments_from_youtube(
-                    video_id, api_key, additional_data=additional_data
-                )
-
-                # Batch detect sentiment
-                comments_with_sentiment = handler.batch_detect_sentiment(comments)
-
-                # Upload comments to S3
-                handler.upload_comments_to_s3(comments_with_sentiment, video_id)
-
-            except Exception as error:
-                logger.exception(
-                    {
-                        "video_id": video_id,
-                        "message": "Failed to process comments",
-                        "error": str(error),
-                    }
-                )
-                raise error
-
-            return {
-                "action": action,
-                "video_id": video_id,
-                "s3_uri": f"s3://{BUCKET_NAME}/data/{video_id}.json",
+            additional_data = {
+                "execution_id": execution_id,
+                "fetched_at": datetime.now().isoformat(),
             }
+            comments = handler.retrieve_comments_from_youtube(
+                video_id, api_key, additional_data=additional_data
+            )
+            comments_with_sentiment = handler.batch_detect_sentiment(comments)
+            s3_uri = handler.upload_comments_to_s3(comments_with_sentiment, video_id)
+
+            logger.info(
+                {
+                    "message": "ADD action completed",
+                    "video_id": video_id,
+                    "s3_uri": s3_uri,
+                }
+            )
+            return {"action": action, "video_id": video_id, "s3_uri": s3_uri}
 
         case Action.REMOVE:
-            # Delete comments from S3
+            logger.info({"message": "Processing REMOVE action", "video_id": video_id})
             handler.remove_comments_from_s3(video_id)
-            logger.info({"message": "Deleted comments from S3", "video_id": video_id})
-
+            logger.info({"message": "REMOVE action completed", "video_id": video_id})
             return {"action": action, "video_id": video_id}
