@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from enum import Enum
 from itertools import batched
+from typing import TYPE_CHECKING
 
 import boto3
 import inflection
@@ -12,6 +13,10 @@ from aws_lambda_powertools.utilities import parameters
 from aws_lambda_powertools.utilities.parser import event_parser
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from types_boto3_comprehend.client import ComprehendClient
+    from types_boto3_s3.client import S3Client
 
 BUCKET_NAME = os.getenv("BUCKET_NAME")
 AWS_REGION = os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION"))
@@ -23,8 +28,8 @@ tracer = Tracer()
 logger = Logger()
 metrics = Metrics()
 
-s3 = boto3.client("s3", region_name=AWS_REGION)
-comprehend = boto3.client("comprehend", region_name=AWS_REGION)
+s3: S3Client = boto3.client("s3", region_name=AWS_REGION)
+comprehend: ComprehendClient = boto3.client("comprehend", region_name=AWS_REGION)
 
 
 class YouTubeCommentsHandler:
