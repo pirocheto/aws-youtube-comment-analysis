@@ -26,3 +26,4 @@ terraform.tfstate.backup
 lambda.zip
 
 .DS_Store
+.mypy_cache/

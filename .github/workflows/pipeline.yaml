@@ -19,6 +19,7 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     if: github.ref_name == 'test'
+
     defaults:
       run:
         working-directory: function
@@ -72,10 +73,10 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Select/Create Terraform Workspace
+      - name: Select or Create Terraform Workspace
         run: |
           terraform workspace list || echo "Workspace list unavailable"
-          terraform workspace select ${{ env.ENVIRONMENT }} || terraform workspace new ${{ env.ENVIRONMENT }}
+          terraform workspace select-or-create ${{ env.ENVIRONMENT }}
 
       - name: Terraform Plan
         run: terraform plan

@@ -59,7 +59,8 @@ dev = [
     { name = "boto3" },
     { name = "mypy" },
     { name = "pytest" },
-    { name = "types-boto3", extra = ["comprehend", "s3"] },
+    { name = "types-boto3", extra = ["comprehend", "s3", "sagemaker-runtime"] },
+    { name = "types-requests" },
 ]
 test = [
     { name = "boto3" },
@@ -78,7 +79,8 @@ dev = [
     { name = "boto3", specifier = ">=1.35.87" },
     { name = "mypy", specifier = ">=1.14.0" },
     { name = "pytest", specifier = ">=8.3.4" },
-    { name = "types-boto3", extras = ["comprehend", "s3"], specifier = ">=1.35.95" },
+    { name = "types-boto3", extras = ["comprehend", "s3", "sagemaker-runtime"], specifier = ">=1.35.95" },
+    { name = "types-requests", specifier = ">=2.32.0.20241016" },
 ]
 test = [
     { name = "boto3", specifier = ">=1.35.90" },
@@ -411,6 +413,9 @@ comprehend = [
 s3 = [
     { name = "types-boto3-s3" },
 ]
+sagemaker-runtime = [
+    { name = "types-boto3-sagemaker-runtime" },
+]
 
 [[package]]
 name = "types-boto3-comprehend"
@@ -428,6 +433,27 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5a/ee/f3fe35eb0d12d308d3029baa464f1d9a308250d1ff132231edb9e19c44e9/types_boto3_s3-1.35.93.tar.gz", hash = "sha256:fe2121fb231dac53e9ee65f82c2823bdd4024eadc72196470461a149da13003a", size = 72531 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8e/e7/dbb7a59f003da301ec070a7b6c1e2d285a4dcda8bebfa720fa1edf4a7505/types_boto3_s3-1.35.93-py3-none-any.whl", hash = "sha256:b6fb9b268aec947771c9f865f205be62371cc9c7662ed04bb58916d5603d6d37", size = 79318 },
+]
+
+[[package]]
+name = "types-boto3-sagemaker-runtime"
+version = "1.35.93"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/02/84a79a7c8166fcc140f6cc90173f6f12a35087ec162dd9f97e6ce059199f/types_boto3_sagemaker_runtime-1.35.93.tar.gz", hash = "sha256:f698087ea009fc6895f29d915caa30d80a70553743e42224de86877e2c6ead37", size = 15714 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/05/f5/e974f1e0abd8dfcb4c1b33a865d3b76fe2a605e424578c17e9aadf02321b/types_boto3_sagemaker_runtime-1.35.93-py3-none-any.whl", hash = "sha256:0b46633c13a3010c6cb1289399821253a3b44895a4f88bcf5da29aa5831f78b9", size = 19071 },
+]
+
+[[package]]
+name = "types-requests"
+version = "2.32.0.20241016"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fa/3c/4f2a430c01a22abd49a583b6b944173e39e7d01b688190a5618bd59a2e22/types-requests-2.32.0.20241016.tar.gz", hash = "sha256:0d9cad2f27515d0e3e3da7134a1b6f28fb97129d86b867f24d9c726452634d95", size = 18065 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/01/485b3026ff90e5190b5e24f1711522e06c79f4a56c8f4b95848ac072e20f/types_requests-2.32.0.20241016-py3-none-any.whl", hash = "sha256:4195d62d6d3e043a4eaaf08ff8a62184584d2e8684e9d2aa178c7915a7da3747", size = 15836 },
 ]
 
 [[package]]

@@ -38,25 +38,6 @@ terraform-apply:
 terraform-destroy:
 	terraform -chdir=terraform destroy
 
-.PHONY: workspace
+.PHONY: terraform-workspace
 workspace:
-	terraform -chdir=terraform workspace select ${ENV}
-
-.PHONY: create-table-bucket
-delete-table-bucket:
-	aws s3tables delete-table \
-		--table-bucket-arn arn:aws:s3tables:us-east-1:639269844451:bucket/${ENV}-youtube-comment-metastore \
-		--namespace aws_s3_metadata \
-		--name dev_youtube_comments_monitoring \
-		--region us-east-1
-		
-	aws s3tables delete-table-bucket \
-		--region us-east-1 \
-		--table-bucket-arn arn:aws:s3tables:us-east-1:639269844451:bucket/${ENV}-youtube-comment-metastore
-
-.PHONY: delete-metadata-table-config
-delete-metadata-table-config:
-	aws s3api delete-bucket-metadata-table-configuration \
-		--bucket ${ENV}-youtube-comment-storage \
-		--region us-east-1
-
+	terraform -chdir=terraform workspace select -or-create ${ENV}
