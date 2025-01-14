@@ -6,7 +6,7 @@ variable "function_name" {
   type = string
 }
 
-variable "function_dir" {
+variable "code_dir" {
   type = string
 }
 
