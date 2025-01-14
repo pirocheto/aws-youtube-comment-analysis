@@ -22,7 +22,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: function
+        working-directory: code
 
     steps:
       - uses: actions/checkout@v3
