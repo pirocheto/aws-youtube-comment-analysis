@@ -76,7 +76,7 @@ jobs:
       - name: Select or Create Terraform Workspace
         run: |
           terraform workspace list || echo "Workspace list unavailable"
-          terraform workspace select-or-create ${{ env.ENVIRONMENT }}
+          terraform workspace select --or-create ${{ env.ENVIRONMENT }}
 
       - name: Terraform Plan
         run: terraform plan
