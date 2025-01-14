@@ -9,7 +9,7 @@ terraform {
   required_version = ">= 1.3.0"
 
   backend "s3" {
-    bucket = "terraform-states"
+    bucket = "terraform-states-us-east-1-639269844451"
     key    = "youtube-comment-analysis/terraform.tfstate"
     region = "us-east-1"
   }
