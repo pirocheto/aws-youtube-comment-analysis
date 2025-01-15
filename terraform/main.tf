@@ -7,7 +7,7 @@ module "lambda" {
   env           = local.env
   function_name = "${local.env}-youtube-comment-processor"
   bucket_name   = module.s3.bucket_name
-  code_dir      = "${abspath(path.root)}/../code"
+  code_dir      = "${abspath(path.root)}/../lambda_code"
   service_name  = var.service_name
 }
 
@@ -21,8 +21,8 @@ module "s3" {
 module "glue" {
   source        = "./modules/glue"
   env           = local.env
-  database_name = "${local.env}_youtube_comments"
-  table_name    = "${local.env}_youtube_comments_analytics"
+  database_name = "${local.env}_youtube_comment_db"
+  table_name    = "${local.env}_youtube_comment_analytics"
   bucket_name   = module.s3.bucket_name
 }
 

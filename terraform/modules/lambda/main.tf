@@ -42,11 +42,10 @@ resource "aws_lambda_function" "function" {
   timeout          = 300
   environment {
     variables = {
-      YOUTUBE_API_KEY_SECRET_NAME  = "${var.env}/YouTubeAPIKey"
-      POWERTOOLS_SERVICE_NAME      = "${var.env}${var.service_name}"
-      POWERTOOLS_METRICS_NAMESPACE = "${var.env}${var.service_name}"
-      LOG_LEVEL                    = "INFO"
-      BUCKET_NAME                  = var.bucket_name
+      YOUTUBE_API_KEY_SECRET_NAME = "${var.env}/YouTubeAPIKey"
+      POWERTOOLS_SERVICE_NAME     = "${var.env}${var.service_name}"
+      LOG_LEVEL                   = "INFO"
+      BUCKET_NAME                 = var.bucket_name
     }
   }
   tags = {

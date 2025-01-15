@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "name": "🔰 Root",
+      "path": "."
+    },
+    {
+      "name": "⭐️ Lambda Code",
+      "path": "lambda_code"
+    },
+    {
+      "name": "🚀 Terraform",
+      "path": "terraform"
+    }
+  ],
+}
