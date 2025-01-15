@@ -22,7 +22,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: code
+        working-directory: lambda_code
 
     steps:
       - uses: actions/checkout@v3
