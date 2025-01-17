@@ -70,6 +70,7 @@ jobs:
             uv pip compile pyproject.toml -o .build/requirements.txt
             uv pip install -r .build/requirements.txt --target .build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
             cd .build && rm -rf *.dist-info *.egg-info __pycache__
+            pwd && ls -la .build
 
       - name: Upload .build as artifact
         uses: actions/upload-artifact@v3
