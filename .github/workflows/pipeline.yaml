@@ -71,6 +71,11 @@ jobs:
             uv pip install -r .build/requirements.txt --target .build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
             cd .build && rm -rf *.dist-info *.egg-info __pycache__
 
+      - name: Upload .build as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact
+          path: .build
 
   deploy:
     runs-on: ubuntu-22.04
@@ -82,6 +87,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Download .build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifact
+          path: lambda_code/.build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
