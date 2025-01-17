@@ -106,15 +106,15 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init -chdir=terraform
+        run: terraform -chdir=terraform init
 
       - name: Select or Create Terraform Workspace
         run: |
-          terraform workspace list || echo "Workspace list unavailable"
-          terraform workspace select --or-create ${{ env.ENVIRONMENT }}
+          terraform -chdir=terraform workspace list || echo "Workspace list unavailable"
+          terraform -chdir=terraform workspace  select --or-create ${{ env.ENVIRONMENT }}
 
       - name: Terraform Plan
-        run: terraform plan -chdir=terraform
+        run: terraform -chdir=terraform plan
 
       - name: Terraform Apply
-        run: terraform apply -chdir=terraform -auto-approve
+        run: terraform -chdir=terraform apply -auto-approve
