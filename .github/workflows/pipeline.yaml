@@ -73,7 +73,7 @@ jobs:
       - name: Upload build as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lambda-artifact
+          name: lambda-code-build
           path: lambda_code/build
           if-no-files-found: error
 
@@ -89,10 +89,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Download build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: lambda-artifact
-          path: lambda_code/build
+          name: lambda-code-build
+          path: ../lambda_code/build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
