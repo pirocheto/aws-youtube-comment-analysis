@@ -59,7 +59,7 @@ dev = [
     { name = "boto3" },
     { name = "mypy" },
     { name = "pytest" },
-    { name = "types-boto3", extra = ["comprehend", "s3", "sagemaker-runtime"] },
+    { name = "types-boto3", extra = ["s3", "sagemaker-runtime"] },
     { name = "types-requests" },
 ]
 test = [
@@ -79,7 +79,7 @@ dev = [
     { name = "boto3", specifier = ">=1.35.87" },
     { name = "mypy", specifier = ">=1.14.0" },
     { name = "pytest", specifier = ">=8.3.4" },
-    { name = "types-boto3", extras = ["comprehend", "s3", "sagemaker-runtime"], specifier = ">=1.35.95" },
+    { name = "types-boto3", extras = ["s3", "sagemaker-runtime"], specifier = ">=1.35.95" },
     { name = "types-requests", specifier = ">=2.32.0.20241016" },
 ]
 test = [
@@ -407,23 +407,11 @@ wheels = [
 ]
 
 [package.optional-dependencies]
-comprehend = [
-    { name = "types-boto3-comprehend" },
-]
 s3 = [
     { name = "types-boto3-s3" },
 ]
 sagemaker-runtime = [
     { name = "types-boto3-sagemaker-runtime" },
-]
-
-[[package]]
-name = "types-boto3-comprehend"
-version = "1.35.93"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/04/b2/a2cd871b2fea0c1d0a5ab8c0cf6b261615855d9629e7621add91e5131fdd/types_boto3_comprehend-1.35.93.tar.gz", hash = "sha256:acbbba71cb35bde6fc72e3f5c931d038fca49c594f0915c4f608be8029a996a9", size = 43728 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/16/c67b58131692b877e8f54e17f2c6297ee382380cf6168fd2a285ed16d52e/types_boto3_comprehend-1.35.93-py3-none-any.whl", hash = "sha256:8995d25a2cd87759f9e50f9b4d2b16cb3dc6ec96d38e36d4b7a71b9f2469c622", size = 48897 },
 ]
 
 [[package]]

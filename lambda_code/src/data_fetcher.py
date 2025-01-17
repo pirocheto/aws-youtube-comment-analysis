@@ -53,17 +53,21 @@ def fetch_page(
 
 
 @tracer.capture_method
-def get_data(video_id: str) -> Generator[dict, None, None]:
+def get_data(video_id: str, max: None | int = None) -> Generator[dict, None, None]:
     """Fetch all comments for a YouTube video."""
 
     next_page_token = None
+    total_comments = 0
 
     while True:
         data = fetch_page(video_id, next_page_token)
         comments = data["items"]
 
         for comment in comments:
+            total_comments += 1
             yield comment
+            if max and total_comments >= max:
+                return
 
         next_page_token = data.get("nextPageToken")
         if not next_page_token:
