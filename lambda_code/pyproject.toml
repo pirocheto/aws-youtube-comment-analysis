@@ -16,7 +16,7 @@ dev = [
     "boto3>=1.35.87",
     "mypy>=1.14.0",
     "pytest>=8.3.4",
-    "types-boto3[comprehend,s3,sagemaker-runtime]>=1.35.95",
+    "types-boto3[s3,sagemaker-runtime]>=1.35.95",
     "types-requests>=2.32.0.20241016",
 ]
 test = ["boto3>=1.35.90", "pytest>=8.3.4"]
