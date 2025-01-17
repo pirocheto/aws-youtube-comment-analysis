@@ -81,9 +81,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build-lambda
 
-    # defaults:
-    #   run:
-    #     working-directory: terraform
+    defaults:
+      run:
+        working-directory: terraform
 
     steps:
       - uses: actions/checkout@v3
@@ -106,15 +106,15 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform -chdir=terraform init
+        run: terraform init
 
       - name: Select or Create Terraform Workspace
         run: |
-          terraform -chdir=terraform workspace list || echo "Workspace list unavailable"
-          terraform -chdir=terraform workspace  select --or-create ${{ env.ENVIRONMENT }}
+          terraform workspace list || echo "Workspace list unavailable"
+          terraform workspace  select --or-create ${{ env.ENVIRONMENT }}
 
       - name: Terraform Plan
-        run: terraform -chdir=terraform plan
+        run: terraform plan
 
       - name: Terraform Apply
-        run: terraform -chdir=terraform apply -auto-approve
+        run: terraform apply -auto-approve
