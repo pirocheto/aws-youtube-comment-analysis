@@ -81,9 +81,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build-lambda
 
-    defaults:
-      run:
-        working-directory: terraform
+    # defaults:
+    #   run:
+    #     working-directory: terraform
 
     steps:
       - uses: actions/checkout@v3
@@ -92,7 +92,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lambda-code-build
-          path: ../lambda_code/build
+          path: lambda_code/build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -106,7 +106,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -chdir=terraform
 
       - name: Select or Create Terraform Workspace
         run: |
@@ -114,7 +114,7 @@ jobs:
           terraform workspace select --or-create ${{ env.ENVIRONMENT }}
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -chdir=terraform
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -chdir=terraform -auto-approve
