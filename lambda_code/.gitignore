@@ -13,3 +13,4 @@ wheels/
 
 .build/
 lambda.zip
+requirements.txt

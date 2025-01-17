@@ -1,39 +1,9 @@
 data "aws_caller_identity" "current" {}
 
-resource "null_resource" "build_lambda" {
-  triggers = {
-    lambda_code_hash = join("", [
-      fileexists("${var.code_dir}/.build/build.date") ? "exists" : "not_exists",
-      filesha256("${var.code_dir}/pyproject.toml"),
-      # filesha256("${var.code_dir}/src/lambda_handler.py")
-      join("", [
-        for file in fileset("${var.code_dir}/src", "**/*") :
-        filesha256("${var.code_dir}/src/${file}")
-      ])
-    ])
-  }
-  provisioner "local-exec" {
-    command = <<EOF
-      	cd ${var.code_dir}
-        mkdir -p .build
-        cp -r src/* .build/
-        uv pip compile pyproject.toml -o .build/requirements.txt
-        uv pip install -r .build/requirements.txt --target .build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
-        cd .build && rm -rf *.dist-info *.egg-info __pycache__
-        echo "Build completed: $(date)" > build.date
-    EOF
-  }
-}
-
-
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${var.code_dir}/.build"
   output_path = "${var.code_dir}/lambda.zip"
-
-  depends_on = [
-    null_resource.build_lambda
-  ]
 }
 
 resource "aws_lambda_function" "function" {
