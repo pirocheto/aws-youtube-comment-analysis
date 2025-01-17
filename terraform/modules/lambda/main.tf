@@ -7,7 +7,8 @@ resource "null_resource" "build_lambda" {
       filesha256("${var.code_dir}/pyproject.toml"),
       # filesha256("${var.code_dir}/src/lambda_handler.py")
       join("", [
-        for file in fileset("${var.code_dir}/src", "**/*") : filesha256(file)
+        for file in fileset("${var.code_dir}/src", "**/*") :
+        filesha256("${var.code_dir}/src/${file}")
       ])
     ])
   }
