@@ -2,8 +2,8 @@ data "aws_caller_identity" "current" {}
 
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_dir  = "${var.code_dir}/.build"
-  output_path = "${var.code_dir}/lambda.zip"
+  source_dir  = var.code_dir
+  output_path = ".artifacts/lambda.zip"
 }
 
 resource "aws_lambda_function" "function" {
