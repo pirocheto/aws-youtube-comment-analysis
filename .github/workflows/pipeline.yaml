@@ -75,9 +75,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build-artifact
-          path: .build
+          path: lambda_code/.build
+          if-no-files-found: error
 
-  deploy:
+  deploy-stack:
     runs-on: ubuntu-22.04
     needs: build-lambda
 
