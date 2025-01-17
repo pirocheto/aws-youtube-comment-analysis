@@ -65,18 +65,16 @@ jobs:
 
       - name: Build Lambda
         run: |
-            mkdir -p .build
-            cp -r src/* .build/
-            uv pip compile pyproject.toml -o .build/requirements.txt
-            uv pip install -r .build/requirements.txt --target .build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
-            cd .build && rm -rf *.dist-info *.egg-info __pycache__
-            cd .. && pwd && ls -la .build
+            mkdir -p build
+            cp -r src/* build/
+            uv pip compile pyproject.toml -o build/requirements.txt
+            uv pip install -r build/requirements.txt --target build --python-platform x86_64-manylinux_2_40 --only-binary=:all:
 
-      - name: Upload .build as artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload build as artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: build-artifact
-          path: .build
+          name: lambda-artifact
+          path: build
           if-no-files-found: error
 
   deploy-stack:
@@ -90,11 +88,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download .build artifact
+      - name: Download build artifact
         uses: actions/download-artifact@v3
         with:
-          name: build-artifact
-          path: lambda_code/.build
+          name: lambda-artifact
+          path: lambda_code/build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

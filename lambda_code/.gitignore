@@ -11,6 +11,6 @@ wheels/
 # Virtual environments
 .venv
 
-.build/
+
 lambda.zip
 requirements.txt
