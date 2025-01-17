@@ -7,7 +7,7 @@ module "lambda" {
   env           = local.env
   function_name = "${local.env}-youtube-comment-processor"
   bucket_name   = module.s3.bucket_name
-  code_dir      = "${path.root}/../lambda_code/build"
+  code_dir      = abspath("../lambda_code/build")
   service_name  = var.service_name
 }
 
