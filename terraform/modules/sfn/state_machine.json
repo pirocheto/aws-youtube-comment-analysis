@@ -1,8 +1,9 @@
 {
+  "QueryLanguage": "JSONata",
   "Comment": "A Hello World example of the Amazon States Language using an AWS Lambda Function",
-  "StartAt": "Map Videoid",
+  "StartAt": "Map VideoId",
   "States": {
-    "Map Videoid": {
+    "Map VideoId": {
       "Type": "Map",
       "ItemProcessor": {
         "ProcessorConfig": {
@@ -14,15 +15,6 @@
           "Process Comments": {
             "Type": "Task",
             "Resource": "arn:aws:states:::lambda:invoke",
-            "OutputPath": "$.Payload",
-            "Parameters": {
-              "FunctionName": "${lambda_arn}:$LATEST",
-              "Payload": {
-                "video_id.$": "$$.Execution.Input.video_id",
-                "action.$": "$$.Execution.Input.action",
-                "execution_id.$": "$$.Execution.Input.execution_id"
-              }
-            },
             "Retry": [
               {
                 "ErrorEquals": [
@@ -37,19 +29,25 @@
                 "JitterStrategy": "FULL"
               }
             ],
-            "End": true
+            "End": true,
+            "QueryLanguage": "JSONata",
+            "Arguments": {
+              "FunctionName": "${lambda_arn}",
+              "Payload": "{% $states.input %}"
+            }
           }
         }
       },
       "End": true,
-      "Label": "MapVideoid",
+      "Label": "MapVideoId",
       "MaxConcurrency": 100,
-      "ItemsPath": "$.video_id",
       "ItemSelector": {
-        "action.$": "$$.Execution.Input.action",
-        "video_id.$": "$$.Map.Item.Value",
-        "execution_id.$": "$$.Execution.Name"
-      }
+        "action": "{% $states.input.action %}",
+        "video_id": "{% $states.context.Map.Item.Value %}",
+        "execution_id": "{% $states.context.Execution.Name %}"
+      },
+      "QueryLanguage": "JSONata",
+      "Items": "{% $states.input.video_id %}"
     }
   }
 }

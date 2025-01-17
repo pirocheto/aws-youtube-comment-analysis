@@ -17,4 +17,7 @@
       "path": "lambda_code"
     }
   ],
+  "settings": {
+    "window.title": "${dirty} 📦 aws-youtube-comment-analysis",
+  }
 }
