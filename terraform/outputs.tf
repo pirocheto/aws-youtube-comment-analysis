@@ -23,7 +23,17 @@ output "glue_database_name" {
   value       = module.glue.database_name
 }
 
+output "glue_database_arn" {
+  description = "ARN of the Glue database"
+  value       = module.glue.database_arn
+}
+
 output "glue_table_name" {
   description = "Name of the Glue table"
   value       = module.glue.table_name
+}
+
+output "glue_table_arn" {
+  description = "ARN of the Glue table"
+  value       = module.glue.table_arn
 }

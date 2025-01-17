@@ -14,13 +14,12 @@ module "lambda" {
 module "s3" {
   source       = "./modules/s3"
   bucket_name  = "${local.env}-youtube-comment-storage"
-  env          = local.env
   service_name = var.service_name
+  env          = local.env
 }
 
 module "glue" {
   source        = "./modules/glue"
-  env           = local.env
   database_name = "${local.env}_youtube_comment_db"
   table_name    = "${local.env}_youtube_comment_analytics"
   bucket_name   = module.s3.bucket_name
