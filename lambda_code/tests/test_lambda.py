@@ -3,11 +3,10 @@ from dataclasses import dataclass
 import pytest
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def mocked_env(monkeypatch):
     monkeypatch.setenv("BUCKET_NAME", "test-youtube-comment-sentiment-analysis")
     monkeypatch.setenv("POWERTOOLS_SERVICE_NAME", "YouTubeSentimentAnalysis")
-    monkeypatch.setenv("POWERTOOLS_METRICS_NAMESPACE", "YouTubeSentimentAnalysis")
 
 
 @pytest.fixture
@@ -28,10 +27,14 @@ def context():
     return LambdaContext
 
 
-def test_lambda_handler(context):
+def test_lambda_handler(mocked_env, context):
     from src.lambda_handler import lambda_handler
 
-    event = {"video_id": "Ps5kScYvQQk"}
+    event = {
+        "video_id": "n7eRyfh306o",
+        "action": "ADD",
+        "execution_id": "1234567890",
+    }
 
     response = lambda_handler(event, context)
-    assert response["video_id"] == "Ps5kScYvQQk"
+    assert response["video_id"] == "n7eRyfh306o"

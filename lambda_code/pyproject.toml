@@ -26,6 +26,7 @@ disallow_untyped_calls = true
 
 [tool.ruff]
 target-version = "py312"
+line-length = 120
 
 [tool.ruff.lint]
 select = [
