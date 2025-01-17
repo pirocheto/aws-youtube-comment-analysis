@@ -5,7 +5,10 @@ resource "null_resource" "build_lambda" {
     lambda_code_hash = join("", [
       fileexists("${var.code_dir}/.build/build.date") ? "exists" : "not_exists",
       filesha256("${var.code_dir}/pyproject.toml"),
-      filesha256("${var.code_dir}/src/lambda_handler.py")
+      # filesha256("${var.code_dir}/src/lambda_handler.py")
+      join("", [
+        for file in fileset("${var.code_dir}/src", "**/*") : filesha256(file)
+      ])
     ])
   }
   provisioner "local-exec" {

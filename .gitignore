@@ -1,29 +1,2 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-
-# Virtual environments
-.venv
-
-.pytest_cache/
-.aws-sam/
-packaged-*
-output.json
-sam-pipeline/
 .vscode/
-
-.terraform.lock.hcl
-.terraform.tfstate.lock.info
-terraform.tfstate
-terraform.tfstate.backup
-.terraform
-
-.build/
-lambda.zip
-
 .DS_Store
-.mypy_cache/
