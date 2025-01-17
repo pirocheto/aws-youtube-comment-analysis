@@ -2,7 +2,6 @@ variable "state_machine_name" {
   type = string
 }
 
-variable "state_machine_arn" {
+variable "lambda_arn" {
   type = string
-
 }
