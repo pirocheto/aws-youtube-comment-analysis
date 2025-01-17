@@ -93,18 +93,11 @@ def lambda_handler(event: InputEvent, context: LambdaContext) -> dict:
             )
 
             logger.info("ADD action completed")
-
-            return {
-                "action": action,
-                "video_id": video_id,
-                "s3_key": s3_key,
-            }
+            return {"action": action, "video_id": video_id, "s3_key": s3_key}
 
         case Action.REMOVE:
             logger.info("Processing REMOVE action")
-
             s3.delete_object(Bucket=BUCKET_NAME, Key=s3_key)
 
             logger.info("REMOVE action completed")
-
             return {"action": action, "video_id": video_id}
